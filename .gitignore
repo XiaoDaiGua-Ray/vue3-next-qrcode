@@ -12,8 +12,8 @@ node_modules
 dist
 dist-ssr
 *.local
-es/*
-lib/*
+es
+lib
 src
 public
 
