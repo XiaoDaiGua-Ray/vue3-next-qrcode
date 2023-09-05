@@ -12,7 +12,7 @@
 
 # vue3-next-qrcode
 
-[English](https://github.com/XiaoDaiGua-Ray/vue3-next-qrcode/blob/main/README.md) | 简体中文
+English | [简体中文](https://github.com/XiaoDaiGua-Ray/vue3-next-qrcode/blob/main/README.zh-CN.md)
 
 A QR Code component about vue3 that supports rich attributes such as LOGO GIF
 
