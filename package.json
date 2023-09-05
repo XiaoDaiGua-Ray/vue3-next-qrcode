@@ -1,0 +1,43 @@
+{
+  "name": "vue3-next-qrcode",
+  "private": false,
+  "version": "2.0.0",
+  "type": "module",
+  "license": "MIT",
+  "author": "Ray",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib",
+    "es",
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "vue3",
+    "qrcode"
+  ],
+  "scripts": {
+    "dev": "vite --config vite.build.config.ts",
+    "build:lib": "vite build --config vite.build.config.ts",
+    "build:umd": "vite build --config vite.bundle.config.ts",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.3.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.5.9",
+    "@vitejs/plugin-vue": "^4.2.3",
+    "@vitejs/plugin-vue-jsx": "^3.0.2",
+    "add": "^2.0.6",
+    "awesome-qr": "2.1.5-rc.0",
+    "naive-ui": "^2.34.4",
+    "sass": "^1.66.1",
+    "typescript": "^5.0.2",
+    "vite": "^4.4.5",
+    "vite-plugin-dts": "^2.3.0",
+    "vue-tsc": "^1.8.5"
+  }
+}
