@@ -45,291 +45,35 @@ import { Vue3NextQrcode } from 'vue3-next-qrcode'
 
 ## 🤺 Props Options
 
-```ts
-{
-  watchText: {
-    /**
-     *
-     * Atuo watch QR code text
-     * If update text, then re-render QR code
-     *
-     * @default true
-     */
-    type: Boolean,
-    default: true,
-  },
-  status: {
-    /**
-     *
-     * QR code status
-     *
-     * @default undefined
-     */
-    type: String as PropType<QRCodeStatus>,
-  },
-  errorDescription: {
-    /**
-     *
-     * QR code error description label
-     *
-     * @default 二维码已过期
-     */
-    type: [String, Object] as PropType<string | VNode>,
-    default: '二维码已过期',
-  },
-  errorActionDescription: {
-    /**
-     *
-     * QR code error action description label
-     *
-     * @default 重新加载
-     */
-    type: String,
-    default: '重新加载',
-  },
-  text: {
-    /**
-     *
-     * Text to be encoded in the QR code
-     */
-    type: String,
-    required: true,
-  },
-  size: {
-    /**
-     *
-     * Size of the QR code in pixel.
-     *
-     * @default 160
-     */
-    type: Number,
-    default: 160,
-  },
-  margin: {
-    /**
-     *
-     * Size of margins around the QR code body in pixel.
-     *
-     * @default 12
-     */
-    type: Number,
-    default: 12,
-  },
-  correctLevel: {
-    /**
-     *
-     * Error correction level of the QR code
-     * Accepts a value provided by _QRErrorCorrectLevel_
-     *
-     * @default 1
-     */
-    type: Number as PropType<QRCodeLevel>,
-    default: 1,
-    validator: (value: unknown) => [0, 1, 2, 3].includes(value as number),
-  },
-  maskPattern: {
-    /**
-     *
-     * Specify the mask pattern to be used in QR code encoding
-     * Accepts a value provided by _QRMaskPattern_
-     */
-    type: Number,
-  },
-  version: {
-    /**
-     *
-     * Specify the version to be used in QR code encoding
-     * Accepts an integer in range [1, 40]
-     */
-    type: Number,
-  },
-  components: {
-    /**
-     *
-     * Options to control components in the QR code.
-     *
-     * @default {data:{scale...},...}
-     */
-    type: Object as PropType<ComponentOptions>,
-    default: () => ({
-      data: {
-        scale: 1,
-      },
-      timing: {
-        scale: 1,
-        protectors: false,
-      },
-      alignment: {
-        scale: 1,
-        protectors: false,
-      },
-      cornerAlignment: {
-        scale: 1,
-        protectors: true,
-      },
-    }),
-  },
-  colorDark: {
-    /**
-     *
-     * Color of the blocks on the QR code
-     * Accepts a CSS &lt;color&gt;
-     *
-     * @default #000000
-     */
-    type: String,
-    default: '#000000',
-  },
-  colorLight: {
-    /**
-     *
-     * Color of the blocks on the QR code
-     * Accepts a CSS &lt;color&gt;
-     *
-     * @default #ffffff
-     */
-    type: String,
-    default: '#ffffff',
-  },
-  autoColor: {
-    /**
-     *
-     * Automatically calculate the _colorLight_ value from the QR code's background
-     *
-     * @default true
-     */
-    type: Boolean,
-    default: true,
-  },
-  backgroundImage: {
-    /**
-     *
-     * Background image to be used in the QR code
-     * Accepts a `data:` string in web browsers or a Buffer in Node.js
-     *
-     * @default undefined
-     */
-    type: String,
-  },
-  backgroundDimming: {
-    /**
-     *
-     * Color of the dimming mask above the background image
-     * Accepts a CSS &lt;color&gt;
-     *
-     * @default rgba(0, 0, 0, 0)
-     */
-    type: String,
-    default: 'rgba(0, 0, 0, 0)',
-  },
-  gifBackgroundURL: {
-    /**
-     *
-     * GIF background image to be used in the QR code
-     *
-     * @default undefined
-     */
-    type: String,
-  },
-  gifBackground: {
-    /**
-     *
-     * GIF background image to be used in the QR code
-     *
-     * @default undefined
-     */
-    type: ArrayBuffer,
-  },
-  whiteMargin: {
-    /**
-     *
-     * Use a white margin instead of a transparent one which reveals the background of the QR code on margins
-     *
-     * @default true
-     */
-    type: Boolean,
-    default: true,
-  },
-  logoImage: {
-    /**
-     *
-     * Logo image to be displayed at the center of the QR code
-     * Accepts a `data:` string in web browsers or a Buffer in Node.js
-     * When set to `undefined` or `null`, the logo is disabled
-     *
-     * @default undefined
-     */
-    type: String,
-  },
-  logoScale: {
-    /**
-     *
-     * Ratio of the logo size to the QR code size
-     *
-     * @default 0.4
-     */
-    type: Number,
-    default: 0.4,
-  },
-  logoMargin: {
-    /**
-     *
-     * Size of margins around the logo image in pixels
-     *
-     * @default 6
-     */
-    type: Number,
-    default: 6,
-  },
-  logoCornerRadius: {
-    /**
-     * Corner radius of the logo image in pixels.
-     *
-     * @default 8
-     */
-    type: Number,
-    default: 8,
-  },
-  dotScale: {
-    /**
-     *
-     * Ratio of the real size to the full size of the blocks.
-     * This can be helpful when you want to make more parts of the background visible.
-     *
-     * @default 1
-     */
-    type: Number,
-    default: 1,
-  },
-  onSuccess: {
-    /**
-     *
-     * When the QR code is successfully generated, this callback is called
-     */
-    type: [Function, Array] as PropType<
-      MaybeArray<(dataURL: ArrayBuffer | string | undefined) => void>
-    >,
-    default: null,
-  },
-  onError: {
-    /**
-     *
-     * When the QR code generation fails, this callback is called
-     */
-    type: [Function, Array] as PropType<MaybeArray<(e: unknown) => void>>,
-    default: null,
-  },
-  onReload: {
-    /**
-     *
-     * When reload button is clicked, this callback is called
-     * This method will not execute if the errorAction slot is used
-     */
-    type: [Function, Array] as PropType<MaybeArray<() => void>>,
-    default: null,
-  },
-}
-```
+| **名称**               | **类型**                                              | **默认值**       | **说明**                                                                                                             | **版本** |
+| ---------------------- | ----------------------------------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------- | -------- |
+| watchText              | boolean                                               | true             | Atuo watch QR code text, If update text, then re-render QR code                                                      | \*       |
+| status                 | QRCodeStatus                                          | undefined        | QR code status                                                                                                       | \*       |
+| errorDescription       | string \| VNode                                       | 二维码已过期     | status error QR code error description label                                                                         | \*       |
+| errorActionDescription | string                                                | 重新加载         | status error QR code error action description label                                                                  | \*       |
+| text                   | string                                                | `必填`           | Text to be encoded in the QR code                                                                                    | \*       |
+| size                   | number                                                | 160              | Size of the QR code in pixel                                                                                         | \*       |
+| margin                 | number                                                | 12               | Size of margins around the QR code body in pixel                                                                     | \*       |
+| correctLevel           | number                                                | 1                | Error correction level of the QR code(0-3), Accepts a value provided by _QRErrorCorrectLevel_                        | \*       |
+| maskPattern            | number                                                | undefined        | Specify the mask pattern to be used in QR code encoding, Accepts a value provided by _QRMaskPattern_                 | \*       |
+| version                | number                                                | undefined        | Specify the version to be used in QR code encoding, Accepts an integer in range [1, 40]                              | \*       |
+| components             | ComponentOptions                                      | {}               | Options to control components in the QR code                                                                         | \*       |
+| colorDark              | string                                                | #000000          | Color of the blocks on the QR code                                                                                   | \*       |
+| colorLight             | boolean                                               | #ffffff          | Color of the blocks on the QR code                                                                                   | \*       |
+| autoColor              | boolean                                               | true             | Automatically calculate the _colorLight_ value from the QR code's background                                         | \*       |
+| backgroundImage        | string                                                | undefined        | Background image to be used in the QR code                                                                           | \*       |
+| backgroundDimming      | string                                                | rgba(0, 0, 0, 0) | Color of the dimming mask above the background image                                                                 | \*       |
+| gifBackgroundURL       | string                                                | undefined        | GIF background image to be used in the QR code                                                                       | \*       |
+| gifBackground          | ArrayBuffer                                           | undefined        | GIF background image to be used in the QR code                                                                       | \*       |
+| whiteMargin            | boolean                                               | true             | Use a white margin instead of a transparent one which reveals the background of the QR code on margins               | \*       |
+| logoImage              | string                                                | undefined        | Logo image to be displayed at the center of the QR code                                                              | \*       |
+| logoScale              | number                                                | 0.4              | Ratio of the logo size to the QR code size                                                                           | \*       |
+| logoMargin             | number                                                | 6                | Size of margins around the logo image in pixels                                                                      | \*       |
+| logoCornerRadius       | number                                                | 8                | Corner radius of the logo image in pixels                                                                            | \*       |
+| dotScale               | number                                                | 1                | Ratio of the real size to the full size of the blocks                                                                | \*       |
+| onSuccess              | (dataURL: ArrayBuffer \| string \| undefined) => void | null             | When the QR code is successfully generated, this callback is called                                                  | \*       |
+| onError                | (e: unknown) => void                                  | null             | When the QR code generation fails, this callback is called                                                           | \*       |
+| onReload               | () => void                                            | null             | When reload button is clicked, this callback is called, This method will not execute if the errorAction slot is used | \*       |
 
 ## 🪴 Project Activity
 
