@@ -34,6 +34,7 @@
     "add": "^2.0.6",
     "awesome-qr": "2.1.5-rc.0",
     "naive-ui": "^2.34.4",
+    "prettier": "^3.0.3",
     "sass": "^1.66.1",
     "typescript": "^5.0.2",
     "vite": "^4.4.5",

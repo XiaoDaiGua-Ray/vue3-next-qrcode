@@ -28,6 +28,9 @@ devDependencies:
   naive-ui:
     specifier: ^2.34.4
     version: 2.34.4(vue@3.3.4)
+  prettier:
+    specifier: ^3.0.3
+    version: 3.0.3
   sass:
     specifier: ^1.66.1
     version: 1.66.1
@@ -1774,6 +1777,12 @@ packages:
       nanoid: 3.3.6
       picocolors: 1.0.0
       source-map-js: 1.0.2
+
+  /prettier@3.0.3:
+    resolution: {integrity: sha512-L/4pUDMxcNa8R/EthV08Zt42WBO4h1rarVtK0K+QJG0X187OLo7l699jWw0GKuwzkPQ//jMFA/8Xm6Fh3J/DAg==}
+    engines: {node: '>=14'}
+    hasBin: true
+    dev: true
 
   /punycode@2.3.0:
     resolution: {integrity: sha512-rRV+zQD8tVFys26lAGR9WUuS4iUAngJScM+ZRSKtvl5tKeZ2t5bvdNFdNHBW9FWR4guGHlgmsZ1G7BSm2wTbuA==}
