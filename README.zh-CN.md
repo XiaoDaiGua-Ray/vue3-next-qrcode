@@ -75,6 +75,12 @@ import { Vue3NextQrcode } from 'vue3-next-qrcode'
 | onError                | (e: unknown) => void                                  | null             | 二维码渲染失败回调                                                                 | \*       |
 | onReload               | () => void                                            | null             | status error 状态下点击重新加载按钮回调，如果使用了 errorAction 插槽该方法不会执行 | \*       |
 
+## 🔧 Slots
+
+| **名称**    | **参数** | **说明**                            | **版本** |
+| ----------- | -------- | ----------------------------------- | -------- |
+| errorAction | ()       | status error 状态下的自定义展示样式 | \*       |
+
 ## 🪴 项目活动
 
 ![Alt](https://repobeats.axiom.co/api/embed/7802e3c093747ad0cf1dbda3937e7a34500428ad.svg 'Repobeats analytics image')
