@@ -1,11 +1,16 @@
 import './index.scss'
 
-import { NButton, NSpin } from 'naive-ui'
-
 import props from './props'
 import { AwesomeQR } from 'awesome-qr/lib/awesome-qr'
 import { call } from './call'
-import { ref, onMounted, defineComponent, watchEffect, nextTick } from 'vue'
+import {
+  ref,
+  onMounted,
+  defineComponent,
+  watchEffect,
+  nextTick,
+  computed,
+} from 'vue'
 
 import type { QRCodeRenderResponse } from './types'
 
@@ -53,11 +58,18 @@ export default defineComponent({
   setup(props, ctx) {
     const { expose } = ctx
 
+    const cssVars = computed(() => {
+      const cssVar = {
+        '--ray-qrcode-width': props.size + 'px',
+        '--ray-qrcode-height': props.size + 'px',
+        '--ray-qrcode-border-radius': props.logoCornerRadius + 'px',
+      }
+
+      return cssVar
+    })
     const qrcodeURL = ref<QRCodeRenderResponse>()
-    const spinOverrides = {
-      opacitySpinning: '0.1',
-    }
     let gifBuffer: string | ArrayBuffer | null
+    const isClick = ref(false)
 
     const getGIFImageByURL = async () => {
       const { gifBackgroundURL } = props
@@ -136,19 +148,20 @@ export default defineComponent({
 
     return {
       qrcodeURL,
-      spinOverrides,
       errorActionClick,
+      cssVars,
+      isClick,
     }
   },
   render() {
     return (
-      <div class="ray-qrcode">
-        <NSpin
-          show={this.status === 'loading'}
-          themeOverrides={this.spinOverrides}
-        >
+      <div class="ray-qrcode" style={[this.cssVars]}>
+        <div class={[this.status === 'loading' ? 'ray-qrcode__loading' : '']}>
+          {this.status === 'loading' ? (
+            <div class="ray-qrcode__spin"></div>
+          ) : null}
           <img src={this.qrcodeURL as string | undefined} />
-        </NSpin>
+        </div>
         {this.status === 'error' ? (
           <div class="ray-qrcode__error">
             <div class="ray-qrcode__error-content">
@@ -163,13 +176,17 @@ export default defineComponent({
               {this.$slots.errorAction ? (
                 this.$slots.errorAction()
               ) : (
-                <>
-                  <NButton text color="#ffffff">
-                    {{
-                      default: () => this.errorActionDescription,
-                    }}
-                  </NButton>
-                </>
+                <span
+                  onMousedown={() => {
+                    this.isClick = true
+                  }}
+                  onMouseup={() => {
+                    this.isClick = false
+                  }}
+                  class={[this.isClick ? 'ray-qrcode__error-btn-click' : '']}
+                >
+                  {this.errorActionDescription}
+                </span>
               )}
             </div>
           </div>

@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import dts from 'vite-plugin-dts'
+import viteSvgLoader from 'vite-svg-loader'
 
 export default defineConfig({
   plugins: [
@@ -11,6 +12,9 @@ export default defineConfig({
       // @ts-ignore
       outputDir: ['es', 'lib'],
       include: ['components/**/*.ts', 'components/**/*.tsx'],
+    }),
+    viteSvgLoader({
+      defaultImport: 'component',
     }),
   ],
   build: {
