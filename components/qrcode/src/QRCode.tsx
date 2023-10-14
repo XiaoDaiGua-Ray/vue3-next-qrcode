@@ -10,9 +10,12 @@ import {
   watchEffect,
   nextTick,
   computed,
+  watch,
+  onBeforeUnmount,
 } from 'vue'
 
 import type { QRCodeRenderResponse } from './types'
+import type { WatchStopHandle } from 'vue'
 
 export const downloadBase64File = (base64: string, fileName?: string) => {
   const link = document.createElement('a')
@@ -70,6 +73,7 @@ export default defineComponent({
     const qrcodeURL = ref<QRCodeRenderResponse>()
     let gifBuffer: string | ArrayBuffer | null
     const isClick = ref(false)
+    let watchCallback!: WatchStopHandle
 
     const getGIFImageByURL = async () => {
       const { gifBackgroundURL } = props
@@ -131,9 +135,10 @@ export default defineComponent({
 
     watchEffect(() => {
       if (props.watchText) {
-        nextTick().then(() => {
-          renderQRCode()
-        })
+        watchCallback = watch(
+          () => props.text,
+          () => renderQRCode(),
+        )
       }
     })
 
@@ -144,6 +149,9 @@ export default defineComponent({
     onMounted(async () => {
       await getGIFImageByURL()
       renderQRCode()
+    })
+    onBeforeUnmount(() => {
+      watchCallback && watchCallback()
     })
 
     return {

@@ -123,10 +123,13 @@ declare const _default: import("vue").DefineComponent<{
     };
 }, {
     qrcodeURL: import("vue").Ref<QRCodeRenderResponse>;
-    spinOverrides: {
-        opacitySpinning: string;
-    };
     errorActionClick: () => void;
+    cssVars: import("vue").ComputedRef<{
+        '--ray-qrcode-width': string;
+        '--ray-qrcode-height': string;
+        '--ray-qrcode-border-radius': string;
+    }>;
+    isClick: import("vue").Ref<boolean>;
 }, unknown, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").VNodeProps & import("vue").AllowedComponentProps & import("vue").ComponentCustomProps, Readonly<import("vue").ExtractPropTypes<{
     watchText: {
         type: BooleanConstructor;

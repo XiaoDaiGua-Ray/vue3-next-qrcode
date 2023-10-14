@@ -1,13 +1,3 @@
-/**
- *
- * @author Ray <https://github.com/XiaoDaiGua-Ray>
- *
- * @date 2023-08-29
- *
- * @workspace ray-template
- *
- * @remark 今天也是元气满满撸代码的一天
- */
 import type { MaybeArray, QRCodeStatus, QRCodeLevel } from './types';
 import type { PropType, VNode } from 'vue';
 import type { ComponentOptions } from 'awesome-qr/lib/awesome-qr';

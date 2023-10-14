@@ -1,6 +1,5 @@
-import { defineComponent, ref, watchEffect, nextTick, onMounted, createVNode, Fragment } from "vue";
+import { defineComponent, computed, ref, watchEffect, watch, onMounted, onBeforeUnmount, createVNode } from "vue";
 import "./index.scss.js";
-import { NSpin, NButton } from "naive-ui";
 import props from "./props.js";
 import { AwesomeQR as AwesomeQR_1 } from "../../node_modules/.pnpm/awesome-qr@2.1.5-rc.0/node_modules/awesome-qr/lib/awesome-qr.js";
 import { call } from "./call.js";
@@ -38,11 +37,18 @@ const QRCode = /* @__PURE__ */ defineComponent({
     const {
       expose
     } = ctx;
+    const cssVars = computed(() => {
+      const cssVar = {
+        "--ray-qrcode-width": props2.size + "px",
+        "--ray-qrcode-height": props2.size + "px",
+        "--ray-qrcode-border-radius": props2.logoCornerRadius + "px"
+      };
+      return cssVar;
+    });
     const qrcodeURL = ref();
-    const spinOverrides = {
-      opacitySpinning: "0.1"
-    };
     let gifBuffer;
+    const isClick = ref(false);
+    let watchCallback;
     const getGIFImageByURL = async () => {
       const {
         gifBackgroundURL
@@ -100,9 +106,7 @@ const QRCode = /* @__PURE__ */ defineComponent({
     };
     watchEffect(() => {
       if (props2.watchText) {
-        nextTick().then(() => {
-          renderQRCode();
-        });
+        watchCallback = watch(() => props2.text, () => renderQRCode());
       }
     });
     expose({
@@ -112,35 +116,42 @@ const QRCode = /* @__PURE__ */ defineComponent({
       await getGIFImageByURL();
       renderQRCode();
     });
+    onBeforeUnmount(() => {
+      watchCallback && watchCallback();
+    });
     return {
       qrcodeURL,
-      spinOverrides,
-      errorActionClick
+      errorActionClick,
+      cssVars,
+      isClick
     };
   },
   render() {
     return createVNode("div", {
-      "class": "ray-qrcode"
-    }, [createVNode(NSpin, {
-      "show": this.status === "loading",
-      "themeOverrides": this.spinOverrides
-    }, {
-      default: () => [createVNode("img", {
-        "src": this.qrcodeURL
-      }, null)]
-    }), this.status === "error" ? createVNode("div", {
+      "class": "ray-qrcode",
+      "style": [this.cssVars]
+    }, [createVNode("div", {
+      "class": [this.status === "loading" ? "ray-qrcode__loading" : ""]
+    }, [this.status === "loading" ? createVNode("div", {
+      "class": "ray-qrcode__spin"
+    }, null) : null, createVNode("img", {
+      "src": this.qrcodeURL
+    }, null)]), this.status === "error" ? createVNode("div", {
       "class": "ray-qrcode__error"
     }, [createVNode("div", {
       "class": "ray-qrcode__error-content"
     }, [typeof this.errorDescription === "string" ? this.errorDescription : () => this.errorDescription]), createVNode("div", {
       "class": "ray-qrcode__error-btn",
       "onClick": this.errorActionClick.bind(this)
-    }, [this.$slots.errorAction ? this.$slots.errorAction() : createVNode(Fragment, null, [createVNode(NButton, {
-      "text": true,
-      "color": "#ffffff"
-    }, {
-      default: () => this.errorActionDescription
-    })])])]) : null]);
+    }, [this.$slots.errorAction ? this.$slots.errorAction() : createVNode("span", {
+      "onMousedown": () => {
+        this.isClick = true;
+      },
+      "onMouseup": () => {
+        this.isClick = false;
+      },
+      "class": [this.isClick ? "ray-qrcode__error-btn-click" : ""]
+    }, [this.errorActionDescription])])]) : null]);
   }
 });
 export {
