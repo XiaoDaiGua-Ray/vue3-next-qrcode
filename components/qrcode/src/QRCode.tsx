@@ -8,7 +8,6 @@ import {
   onMounted,
   defineComponent,
   watchEffect,
-  nextTick,
   computed,
   watch,
   onBeforeUnmount,

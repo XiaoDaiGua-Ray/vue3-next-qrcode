@@ -36,6 +36,7 @@ npm i vue3-next-qrcode
 ```vue
 <script lang="ts" setup>
 import { Vue3NextQrcode } from 'vue3-next-qrcode'
+import 'vue3-next-qrcode/es/style.css'
 </script>
 
 <template>
