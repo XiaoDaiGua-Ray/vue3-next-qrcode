@@ -138,6 +138,8 @@ export default defineComponent({
           () => props.text,
           () => renderQRCode(),
         )
+      } else {
+        watchCallback?.()
       }
     })
 
@@ -150,7 +152,7 @@ export default defineComponent({
       renderQRCode()
     })
     onBeforeUnmount(() => {
-      watchCallback && watchCallback()
+      watchCallback?.()
     })
 
     return {
@@ -163,9 +165,22 @@ export default defineComponent({
   render() {
     return (
       <div class="ray-qrcode" style={[this.cssVars]}>
-        <div class={[this.status === 'loading' ? 'ray-qrcode__loading' : '']}>
+        <div
+          class={[
+            this.status === 'loading' && !this.$slots.loading
+              ? 'ray-qrcode__loading'
+              : '',
+            this.$slots.loading ? 'ray-qrcode__loading--custom' : '',
+          ]}
+        >
           {this.status === 'loading' ? (
-            <div class="ray-qrcode__spin"></div>
+            this.$slots.loading ? (
+              <div class="ray-qrcode__loading-slots">
+                {this.$slots.loading()}
+              </div>
+            ) : (
+              <div class="ray-qrcode__spin"></div>
+            )
           ) : null}
           <img src={this.qrcodeURL as string | undefined} />
         </div>

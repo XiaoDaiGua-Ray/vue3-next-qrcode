@@ -17,6 +17,19 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
+  & .ray-qrcode__loading--custom {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    & .ray-qrcode__loading-slots {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
   & .ray-qrcode__loading {
     position: relative;
     display: flex;

@@ -81,6 +81,7 @@ import 'vue3-next-qrcode/es/style.css'
 | **name**    | **params** | **des**                                    | **version** |
 | ----------- | ---------- | ------------------------------------------ | ----------- |
 | errorAction | ()         | Custom display style in status error state | \*          |
+| loading     | ()         | Customize loading status slots             | 2.0.4       |
 
 ## 🪴 Project Activity
 

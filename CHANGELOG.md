@@ -1,5 +1,27 @@
 ## v2.0.3
 
+### Feat
+
+- 新增 loading 状态插槽
+
+```vue
+<template>
+  <Vue3NextQrcode>
+    <template #loading> your custom loading style </template>
+  </Vue3NextQrcode>
+</template>
+<script setup lang="ts">
+import { Vue3NextQrcode } from 'vue3-next-qrcode'
+import 'vue3-next-qrcode/es/style.css'
+</script>
+```
+
+### Fix
+
+- 修复 watchText 不能被取消问题
+
+## v2.0.3
+
 ### Fix
 
 - 修复 `text` 更新不能正确刷新二维码问题

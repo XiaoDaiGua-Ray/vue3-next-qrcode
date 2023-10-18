@@ -107,6 +107,8 @@ const QRCode = /* @__PURE__ */ defineComponent({
     watchEffect(() => {
       if (props2.watchText) {
         watchCallback = watch(() => props2.text, () => renderQRCode());
+      } else {
+        watchCallback == null ? void 0 : watchCallback();
       }
     });
     expose({
@@ -117,7 +119,7 @@ const QRCode = /* @__PURE__ */ defineComponent({
       renderQRCode();
     });
     onBeforeUnmount(() => {
-      watchCallback && watchCallback();
+      watchCallback == null ? void 0 : watchCallback();
     });
     return {
       qrcodeURL,
@@ -131,8 +133,10 @@ const QRCode = /* @__PURE__ */ defineComponent({
       "class": "ray-qrcode",
       "style": [this.cssVars]
     }, [createVNode("div", {
-      "class": [this.status === "loading" ? "ray-qrcode__loading" : ""]
-    }, [this.status === "loading" ? createVNode("div", {
+      "class": [this.status === "loading" && !this.$slots.loading ? "ray-qrcode__loading" : "", this.$slots.loading ? "ray-qrcode__loading--custom" : ""]
+    }, [this.status === "loading" ? this.$slots.loading ? createVNode("div", {
+      "class": "ray-qrcode__loading-slots"
+    }, [this.$slots.loading()]) : createVNode("div", {
       "class": "ray-qrcode__spin"
     }, null) : null, createVNode("img", {
       "src": this.qrcodeURL
