@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://github.com/XiaoDaiGua-Ray/vue3-next-qrcode">
-    <img width="216" src="https://usc1.contabostorage.com/c2e495d7890844d392e8ec0c6e5d77eb:alist/ray/ray.svg?sign=ZklU9Bh5b6oKp1X0LOhGwkx4g5mW4wk_w9Jt5zlZ5EQ=:0">
+    <img width="216" src="https://r2chevereto.yka.moe/longmao.navigator.th.png">
   </a>
 </p>
 <p align="center">
