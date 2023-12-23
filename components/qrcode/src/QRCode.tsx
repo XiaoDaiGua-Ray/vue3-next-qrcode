@@ -23,6 +23,7 @@ export const downloadBase64File = (base64: string, fileName?: string) => {
   link.download = fileName || new Date().getTime() + '.png'
 
   link.click()
+  link.remove()
 }
 
 const readGIFAsArrayBuffer = (
@@ -65,6 +66,7 @@ export default defineComponent({
         '--ray-qrcode-width': props.size + 'px',
         '--ray-qrcode-height': props.size + 'px',
         '--ray-qrcode-border-radius': props.logoCornerRadius + 'px',
+        '--ray-qrcode-mask-color': props.maskColor,
       }
 
       return cssVar
@@ -128,7 +130,13 @@ export default defineComponent({
 
     const downloadQRCode = (fileName?: string) => {
       if (qrcodeURL.value && typeof qrcodeURL.value === 'string') {
-        downloadBase64File(qrcodeURL.value, fileName)
+        return new Promise<void>((resolve) => {
+          downloadBase64File(qrcodeURL.value as string, fileName)
+
+          resolve()
+        })
+      } else {
+        return Promise.reject()
       }
     }
 
@@ -182,7 +190,10 @@ export default defineComponent({
               <div class="ray-qrcode__spin"></div>
             )
           ) : null}
-          <img src={this.qrcodeURL as string | undefined} />
+          <img
+            src={this.qrcodeURL as string | undefined}
+            {...{ img_tag: 'VUE3_NEXT_QRCODE' }}
+          />
         </div>
         {this.status === 'error' ? (
           <div class="ray-qrcode__error">

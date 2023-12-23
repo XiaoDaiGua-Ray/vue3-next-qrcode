@@ -1,3 +1,16 @@
+## v2.0.5
+
+### Feat
+
+- 更新 `vue` 版本至 `3.3.13`
+- 新增 `maskColor` 配置项，支持配置 `mask` 的颜色
+- `downloadQRCode` 方法，现在会返回一个 `Promise` 对象
+- 对于 `img` 添加 `img_tag` 标记
+
+### Fix
+
+- 修复 `downloadBase64File` 方法，未能及时释放 `a` 标签的问题
+
 ## v2.0.3
 
 ### Feat

@@ -1,6 +1,10 @@
 import type { QRCodeRenderResponse } from './types';
 export declare const downloadBase64File: (base64: string, fileName?: string) => void;
 declare const _default: import("vue").DefineComponent<{
+    maskColor: {
+        type: StringConstructor;
+        default: string;
+    };
     watchText: {
         type: BooleanConstructor;
         default: boolean;
@@ -128,9 +132,14 @@ declare const _default: import("vue").DefineComponent<{
         '--ray-qrcode-width': string;
         '--ray-qrcode-height': string;
         '--ray-qrcode-border-radius': string;
+        '--ray-qrcode-mask-color': string;
     }>;
     isClick: import("vue").Ref<boolean>;
 }, unknown, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").VNodeProps & import("vue").AllowedComponentProps & import("vue").ComponentCustomProps, Readonly<import("vue").ExtractPropTypes<{
+    maskColor: {
+        type: StringConstructor;
+        default: string;
+    };
     watchText: {
         type: BooleanConstructor;
         default: boolean;
@@ -252,6 +261,7 @@ declare const _default: import("vue").DefineComponent<{
         default: null;
     };
 }>>, {
+    maskColor: string;
     watchText: boolean;
     errorDescription: string | import("vue").VNode<import("vue").RendererNode, import("vue").RendererElement, {
         [key: string]: any;

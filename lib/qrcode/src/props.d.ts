@@ -2,6 +2,16 @@ import type { MaybeArray, QRCodeStatus, QRCodeLevel } from './types';
 import type { PropType, VNode } from 'vue';
 import type { ComponentOptions } from 'awesome-qr/lib/awesome-qr';
 declare const props: {
+    maskColor: {
+        /**
+         *
+         * QR code mask color
+         *
+         * @default rgba(255, 255, 255, 0.96)
+         */
+        type: StringConstructor;
+        default: string;
+    };
     watchText: {
         /**
          *

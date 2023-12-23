@@ -1,4 +1,14 @@
 const props = {
+  maskColor: {
+    /**
+     *
+     * QR code mask color
+     *
+     * @default rgba(255, 255, 255, 0.96)
+     */
+    type: String,
+    default: "rgba(255, 255, 255, 0.96)"
+  },
   watchText: {
     /**
      *
