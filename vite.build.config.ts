@@ -20,7 +20,7 @@ export default defineConfig({
   build: {
     minify: false,
     rollupOptions: {
-      external: ['@v-c/utils', '@vueuse/core', 'vue', 'awesome-qr', 'naive-ui'],
+      external: ['@v-c/utils', 'vue', 'awesome-qr'],
       output: [
         {
           format: 'es',
@@ -43,5 +43,8 @@ export default defineConfig({
       entry: 'components/index.ts',
       formats: ['es', 'cjs'],
     },
+  },
+  ssr: {
+    external: ['@v-c/utils', 'vue', 'awesome-qr'],
   },
 })

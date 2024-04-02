@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import type { MaybeArray, QRCodeStatus, QRCodeLevel } from './types';
 import type { PropType, VNode } from 'vue';
 import type { ComponentOptions } from 'awesome-qr/lib/awesome-qr';
@@ -273,7 +274,7 @@ declare const props: {
          *
          * When the QR code is successfully generated, this callback is called
          */
-        type: PropType<MaybeArray<(dataURL: ArrayBuffer | string | undefined) => void>>;
+        type: PropType<MaybeArray<(dataURL: ArrayBuffer | string | undefined | Buffer) => void>>;
         default: null;
     };
     onError: {

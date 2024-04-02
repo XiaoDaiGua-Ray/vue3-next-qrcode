@@ -273,7 +273,7 @@ const props = {
      * When the QR code is successfully generated, this callback is called
      */
     type: [Function, Array] as PropType<
-      MaybeArray<(dataURL: ArrayBuffer | string | undefined) => void>
+      MaybeArray<(dataURL: ArrayBuffer | string | undefined | Buffer) => void>
     >,
     default: null,
   },

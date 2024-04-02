@@ -1,3 +1,14 @@
+## v2.0.6
+
+### Feat
+
+- 重写 `downloadBase64File` 方法
+- 新增 `ssr` 支持
+
+### Fix
+
+- 修复 `onSuccess` 类型错误
+
 ## v2.0.5
 
 ### Feat

@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import type { QRCodeRenderResponse } from './types';
 export declare const downloadBase64File: (base64: string, fileName?: string) => void;
 declare const _default: import("vue").DefineComponent<{
@@ -114,7 +115,7 @@ declare const _default: import("vue").DefineComponent<{
         default: number;
     };
     onSuccess: {
-        type: import("vue").PropType<import("./types").MaybeArray<(dataURL: string | ArrayBuffer | undefined) => void>>;
+        type: import("vue").PropType<import("./types").MaybeArray<(dataURL: string | ArrayBuffer | Buffer | undefined) => void>>;
         default: null;
     };
     onError: {
@@ -249,7 +250,7 @@ declare const _default: import("vue").DefineComponent<{
         default: number;
     };
     onSuccess: {
-        type: import("vue").PropType<import("./types").MaybeArray<(dataURL: string | ArrayBuffer | undefined) => void>>;
+        type: import("vue").PropType<import("./types").MaybeArray<(dataURL: string | ArrayBuffer | Buffer | undefined) => void>>;
         default: null;
     };
     onError: {
@@ -280,7 +281,7 @@ declare const _default: import("vue").DefineComponent<{
     logoMargin: number;
     logoCornerRadius: number;
     dotScale: number;
-    onSuccess: import("./types").MaybeArray<(dataURL: string | ArrayBuffer | undefined) => void>;
+    onSuccess: import("./types").MaybeArray<(dataURL: string | ArrayBuffer | Buffer | undefined) => void>;
     onError: import("./types").MaybeArray<(e: unknown) => void>;
     onReload: import("./types").MaybeArray<() => void>;
 }, {}>;

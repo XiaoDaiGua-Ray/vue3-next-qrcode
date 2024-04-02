@@ -22,8 +22,11 @@ export const downloadBase64File = (base64: string, fileName?: string) => {
   link.href = base64
   link.download = fileName || new Date().getTime() + '.png'
 
+  link.style.display = 'none'
+
+  document.body.appendChild(link)
   link.click()
-  link.remove()
+  document.body.removeChild(link)
 }
 
 const readGIFAsArrayBuffer = (
