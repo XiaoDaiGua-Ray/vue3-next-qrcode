@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://github.com/XiaoDaiGua-Ray/vue3-next-qrcode">
-    <img width="216" src="https://r2chevereto.yka.moe/longmao.navigator.th.png">
+    <img width="216" src="https://avatars.githubusercontent.com/u/51957438?v=4">
   </a>
 </p>
 <p align="center">
