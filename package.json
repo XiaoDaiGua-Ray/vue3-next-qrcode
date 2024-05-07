@@ -1,7 +1,7 @@
 {
   "name": "vue3-next-qrcode",
   "private": false,
-  "version": "2.0.6",
+  "version": "2.0.7",
   "type": "module",
   "license": "MIT",
   "author": "Ray",
@@ -25,14 +25,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.3.13"
+    "vue": "^3.3.13",
+    "awesome-qr": "2.1.5-rc.0"
   },
   "devDependencies": {
     "@types/node": "^20.5.9",
     "@vitejs/plugin-vue": "^4.2.3",
     "@vitejs/plugin-vue-jsx": "^3.0.2",
     "add": "^2.0.6",
-    "awesome-qr": "2.1.5-rc.0",
     "prettier": "^3.0.3",
     "sass": "^1.66.1",
     "typescript": "^5.0.2",

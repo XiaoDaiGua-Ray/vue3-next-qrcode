@@ -7,8 +7,10 @@ const downloadBase64File = (base64, fileName) => {
   const link = document.createElement("a");
   link.href = base64;
   link.download = fileName || (/* @__PURE__ */ new Date()).getTime() + ".png";
+  link.style.display = "none";
+  document.body.appendChild(link);
   link.click();
-  link.remove();
+  document.body.removeChild(link);
 };
 const readGIFAsArrayBuffer = (url) => {
   return new Promise((resolve, reject) => {

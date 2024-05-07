@@ -1,3 +1,9 @@
+## v2.0.7
+
+### Feat
+
+- 暴露 `QRCodeInst, QRCodeLevel, QRCodeStatus` 三个类型
+
 ## v2.0.6
 
 ### Feat
