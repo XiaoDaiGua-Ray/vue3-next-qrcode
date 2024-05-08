@@ -1,19 +1,13 @@
 {
   "name": "vue3-next-qrcode",
   "private": false,
-  "version": "2.0.8",
+  "version": "2.0.9",
   "type": "module",
   "license": "MIT",
   "author": "Ray",
-  "main": "lib/index.js",
-  "module": "es/index.js",
-  "types": "lib/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./es/index.mjs",
-      "require": "./lib/index.cjs"
-    }
-  },
+  "main": "es/index.mjs",
+  "module": "es/index.mjs",
+  "types": "es/index.d.ts",
   "files": [
     "lib",
     "es",
