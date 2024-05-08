@@ -25,14 +25,14 @@ export default defineConfig({
         {
           format: 'es',
           dir: 'es',
-          entryFileNames: '[name].js',
+          entryFileNames: '[name].mjs',
           preserveModules: true,
           preserveModulesRoot: 'components',
         },
         {
           format: 'cjs',
           dir: 'lib',
-          entryFileNames: '[name].js',
+          entryFileNames: '[name].cjs',
           preserveModules: true,
           preserveModulesRoot: 'components',
           exports: 'named',

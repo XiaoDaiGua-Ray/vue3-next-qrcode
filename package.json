@@ -8,6 +8,12 @@
   "main": "lib/index.js",
   "module": "es/index.js",
   "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./es/index.mjs",
+      "require": "./lib/index.cjs"
+    }
+  },
   "files": [
     "lib",
     "es",
