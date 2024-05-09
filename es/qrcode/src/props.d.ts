@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import type { MaybeArray, QRCodeStatus, QRCodeLevel } from './types';
 import type { PropType, VNode } from 'vue';
-import type { ComponentOptions } from 'awesome-qr/lib/awesome-qr';
+import type { ComponentOptions } from '../core/awesome-qr';
 declare const props: {
     maskColor: {
         /**

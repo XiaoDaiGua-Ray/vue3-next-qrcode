@@ -1,7 +1,7 @@
 import './index.scss'
 
 import props from './props'
-import { AwesomeQR } from 'awesome-qr/lib/awesome-qr'
+import { AwesomeQR } from '../core'
 import { call } from './call'
 import {
   ref,

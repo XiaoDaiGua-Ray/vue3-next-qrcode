@@ -1,3 +1,5 @@
+import type { ComponentOptions, Options } from '../core/awesome-qr'
+
 export type QRCodeStatus = 'error' | 'success' | 'loading'
 
 export type QRCodeLevel = 0 | 1 | 2 | 3
@@ -17,3 +19,7 @@ export type QRCodeInst = {
 export type MaybeArray<T> = T | T[]
 
 export type AnyFC = (...args: any[]) => any
+
+export type QRCodeComponentProps = ComponentOptions
+
+export type QRCodeOptions = Options

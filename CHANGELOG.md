@@ -1,3 +1,10 @@
+## v2.0.10
+
+### Feat
+
+- 现在将 `awesome-qr.js` 内置于组件内，不再以 `package.json` 方式管理。
+- 新增了 `QRCodeComponentProps`, `QRCodeOptions` 类型导出
+
 ## v2.0.9
 
 ### Fix

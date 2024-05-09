@@ -47,7 +47,7 @@ declare const _default: import("vue").DefineComponent<{
         type: NumberConstructor;
     };
     components: {
-        type: import("vue").PropType<import("awesome-qr/lib/awesome-qr").ComponentOptions>;
+        type: import("vue").PropType<import("../core/awesome-qr").ComponentOptions>;
         default: () => {
             data: {
                 scale: number;
@@ -182,7 +182,7 @@ declare const _default: import("vue").DefineComponent<{
         type: NumberConstructor;
     };
     components: {
-        type: import("vue").PropType<import("awesome-qr/lib/awesome-qr").ComponentOptions>;
+        type: import("vue").PropType<import("../core/awesome-qr").ComponentOptions>;
         default: () => {
             data: {
                 scale: number;
@@ -271,7 +271,7 @@ declare const _default: import("vue").DefineComponent<{
     size: number;
     margin: number;
     correctLevel: import("./types").QRCodeLevel;
-    components: import("awesome-qr/lib/awesome-qr").ComponentOptions;
+    components: import("../core/awesome-qr").ComponentOptions;
     colorDark: string;
     colorLight: string;
     autoColor: boolean;
