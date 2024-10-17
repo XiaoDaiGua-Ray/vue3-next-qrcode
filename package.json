@@ -1,7 +1,7 @@
 {
   "name": "vue3-next-qrcode",
   "private": false,
-  "version": "2.0.10",
+  "version": "3.0.0",
   "type": "module",
   "license": "MIT",
   "author": "Ray",
@@ -16,7 +16,9 @@
   ],
   "keywords": [
     "vue3",
-    "qrcode"
+    "qrcode",
+    "vue3-next-qrcode",
+    "ssr"
   ],
   "scripts": {
     "dev": "vite --config vite.build.config.ts",
@@ -25,8 +27,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "js-binary-schema-parser": "^2.0.3",
-    "vue": "^3.3.13"
+    "js-binary-schema-parser": "^2.0.3"
+  },
+  "peerDependencies": {
+    "vue": "^3.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.5.9",

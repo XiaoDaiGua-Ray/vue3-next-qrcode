@@ -14,9 +14,14 @@
 
 English | [简体中文](https://github.com/XiaoDaiGua-Ray/vue3-next-qrcode/blob/main/README.zh-CN.md)
 
-A QR Code component about vue3 that supports rich attributes such as LOGO GIF
+A QR Code component about vue3 that supports rich attributes such as LOGO GIF. Support SSR!
 
 </div>
+
+## 🏄‍♀️ Example
+
+<img src="./public/q1.gif" />
+<img src="./public/q2.png" />
 
 ## ✨ Features
 

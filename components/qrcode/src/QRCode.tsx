@@ -65,14 +65,16 @@ export default defineComponent({
     const { expose } = ctx
 
     const cssVars = computed(() => {
+      const { defineProvider, size, logoCornerRadius, maskColor } = props
+
       const cssVar = {
-        '--ray-qrcode-width': props.size + 'px',
-        '--ray-qrcode-height': props.size + 'px',
-        '--ray-qrcode-border-radius': props.logoCornerRadius + 'px',
-        '--ray-qrcode-mask-color': props.maskColor,
+        '--ray-qrcode-width': size + 'px',
+        '--ray-qrcode-height': size + 'px',
+        '--ray-qrcode-border-radius': logoCornerRadius + 'px',
+        '--ray-qrcode-mask-color': maskColor,
       }
 
-      return cssVar
+      return Object.assign({}, cssVar, defineProvider)
     })
     const qrcodeURL = ref<QRCodeRenderResponse>()
     let gifBuffer: string | ArrayBuffer | null

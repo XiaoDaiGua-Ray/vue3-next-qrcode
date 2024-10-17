@@ -14,9 +14,14 @@
 
 [English](https://github.com/XiaoDaiGua-Ray/vue3-next-qrcode/blob/main/README.md) | 简体中文
 
-一个关于 vue3 的 QR Code 组件，支持 LOGO GIF 等丰富属性
+一个关于 vue3 的 QR Code 组件，支持 LOGO GIF 等丰富属性。支持 SSR！
 
 </div>
+
+## 🏄‍♀️ 示例
+
+<img src="./public/q1.gif" />
+<img src="./public/q2.png" />
 
 ## ✨ 特性
 

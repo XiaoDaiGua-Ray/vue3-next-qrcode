@@ -4,7 +4,7 @@ import props from './src/props'
 import type { App } from 'vue'
 
 QRCode.install = function (app: App) {
-  app.component(QRCode.name, QRCode)
+  app.component(QRCode.name!, QRCode)
 }
 
 export { props }

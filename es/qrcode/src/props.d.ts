@@ -1,8 +1,19 @@
 /// <reference types="node" />
-import type { MaybeArray, QRCodeStatus, QRCodeLevel } from './types';
+import type { MaybeArray, QRCodeStatus, QRCodeLevel, DefineProvider } from './types';
 import type { PropType, VNode } from 'vue';
 import type { ComponentOptions } from '../core/awesome-qr';
 declare const props: {
+    defineProvider: {
+        /**
+         *
+         * Define provider.
+         * You can define qrcode css here.
+         *
+         * @default undefined
+         */
+        type: PropType<Partial<DefineProvider>>;
+        default: undefined;
+    };
     maskColor: {
         /**
          *

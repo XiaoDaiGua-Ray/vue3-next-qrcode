@@ -45,7 +45,8 @@
       position: absolute;
       width: 30px;
       height: 30px;
-      border: 3px solid #1677ff;
+      border: var(--ray-qrcode-spin-size, 3px) solid
+        var(--ray-qrcode-primary-color, #1677ff);
       border-top-color: transparent;
       border-radius: 100%;
       animation: ray-qrcode-spin infinite 0.75s linear;
@@ -80,14 +81,14 @@
 
     & .ray-qrcode__error-btn {
       cursor: pointer;
-      color: #1677ff;
+      color: var(--ray-qrcode-primary-color, #1677ff);
 
       &:hover {
-        color: #69b1ff;
+        color: var(--ray-qrcode-primary-color-2, #69b1ff);
       }
 
       & .ray-qrcode__error-btn-click {
-        color: #1677ff;
+        color: var(--ray-qrcode-primary-color, #1677ff);
       }
     }
   }

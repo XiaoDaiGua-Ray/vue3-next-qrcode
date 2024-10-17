@@ -28,6 +28,9 @@ export default defineConfig({
           entryFileNames: '[name].mjs',
           preserveModules: true,
           preserveModulesRoot: 'components',
+          globals: {
+            vue: 'Vue',
+          },
         },
         {
           format: 'cjs',
@@ -36,6 +39,9 @@ export default defineConfig({
           preserveModules: true,
           preserveModulesRoot: 'components',
           exports: 'named',
+          globals: {
+            vue: 'Vue',
+          },
         },
       ],
     },
