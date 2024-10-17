@@ -20,8 +20,10 @@ A QR Code component about vue3 that supports rich attributes such as LOGO GIF. S
 
 ## 🏄‍♀️ Example
 
-<img src="./assets/q1.gif" />
-<img src="./assets/q2.png" />
+<div style="display: flex;gap: 8px 12px;">
+  <img src="./assets/q1.gif" />
+  <img src="./assets/q2.png" />
+</div>
 
 ## ✨ Features
 
