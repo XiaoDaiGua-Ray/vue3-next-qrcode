@@ -20,8 +20,8 @@
 
 ## 🏄‍♀️ 示例
 
-<img src="./public/q1.gif" />
-<img src="./public/q2.png" />
+<img src="./assets/q1.gif" />
+<img src="./assets/q2.png" />
 
 ## ✨ 特性
 
