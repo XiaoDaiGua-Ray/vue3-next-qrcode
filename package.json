@@ -1,7 +1,7 @@
 {
   "name": "vue3-next-qrcode",
   "private": false,
-  "version": "3.0.0",
+  "version": "3.0.2",
   "type": "module",
   "license": "MIT",
   "author": "Ray",
@@ -30,7 +30,7 @@
     "js-binary-schema-parser": "^2.0.3"
   },
   "peerDependencies": {
-    "vue": "^3.0.0"
+    "vue": "^3.0.1"
   },
   "devDependencies": {
     "@types/node": "^20.5.9",

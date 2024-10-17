@@ -31,15 +31,12 @@ var __awaiter =
       step((generator = generator.apply(thisArg, _arguments || [])).next())
     })
   }
-
 import canvas from '../deps/skia-canvas-lib/lib/browser'
-import { decompressFrames, parseGIF } from './gifuct-js'
+const { Canvas } = canvas
+import { decompressFrames, parseGIF } from './gifuct-js/index'
 import { QRCodeModel, QRErrorCorrectLevel, QRUtil } from './qrcode'
 import GIFEncoder from './gif.js/GIFEncoder'
-
 const defaultScale = 0.4
-const { Canvas } = canvas
-
 function loadImage(url) {
   if (!url) {
     return undefined
@@ -73,54 +70,9 @@ function loadImage(url) {
     img.src = url
   })
 }
-
 export class AwesomeQR {
-  canvas
-  canvasContext
-  qrCode
-  options
-
-  static CorrectLevel = QRErrorCorrectLevel
-
-  static defaultComponentOptions = {
-    data: {
-      scale: 1,
-    },
-    timing: {
-      scale: 1,
-      protectors: false,
-    },
-    alignment: {
-      scale: 1,
-      protectors: false,
-    },
-    cornerAlignment: {
-      scale: 1,
-      protectors: true,
-    },
-  }
-
-  static defaultOptions = {
-    text: '',
-    size: 400,
-    margin: 20,
-    colorDark: '#000000',
-    colorLight: '#ffffff',
-    correctLevel: QRErrorCorrectLevel.M,
-    backgroundImage: undefined,
-    backgroundDimming: 'rgba(0,0,0,0)',
-    logoImage: undefined,
-    logoScale: 0.2,
-    logoMargin: 4,
-    logoCornerRadius: 8,
-    whiteMargin: true,
-    components: AwesomeQR.defaultComponentOptions,
-    autoColor: true,
-  }
-
   constructor(options) {
     const _options = Object.assign({}, options)
-
     Object.keys(AwesomeQR.defaultOptions).forEach((k) => {
       if (!(k in _options)) {
         Object.defineProperty(_options, k, {
@@ -130,7 +82,6 @@ export class AwesomeQR {
         })
       }
     })
-
     if (!_options.components) {
       _options.components = AwesomeQR.defaultComponentOptions
     } else if (typeof _options.components === 'object') {
@@ -143,17 +94,16 @@ export class AwesomeQR {
           })
         } else {
           Object.defineProperty(_options.components, k, {
-            value: {
-              ...AwesomeQR.defaultComponentOptions[k],
-              ..._options.components[k],
-            },
+            value: Object.assign(
+              Object.assign({}, AwesomeQR.defaultComponentOptions[k]),
+              _options.components[k],
+            ),
             enumerable: true,
             writable: true,
           })
         }
       })
     }
-
     if (_options.dotScale !== null && _options.dotScale !== undefined) {
       if (_options.dotScale <= 0 || _options.dotScale > 1) {
         throw new Error('dotScale should be in range (0, 1].')
@@ -162,7 +112,6 @@ export class AwesomeQR {
       _options.components.timing.scale = _options.dotScale
       _options.components.alignment.scale = _options.dotScale
     }
-
     this.options = _options
     this.canvas = new Canvas(options.size, options.size)
     this.canvasContext = this.canvas.getContext('2d')
@@ -176,15 +125,12 @@ export class AwesomeQR {
     this.qrCode.addData(this.options.text)
     this.qrCode.make()
   }
-
   draw() {
     return new Promise((resolve) => this._draw().then(resolve))
   }
-
   _clear() {
     this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height)
   }
-
   static _prepareRoundedCornerClip(canvasContext, x, y, w, h, r) {
     canvasContext.beginPath()
     canvasContext.moveTo(x, y)
@@ -194,7 +140,6 @@ export class AwesomeQR {
     canvasContext.arcTo(x, y, x + w, y, r)
     canvasContext.closePath()
   }
-
   static _getAverageRGB(image) {
     const blockSize = 5
     const defaultRGB = {
@@ -210,26 +155,20 @@ export class AwesomeQR {
       b: 0,
     }
     let count = 0
-
     height = image.naturalHeight || image.height
     width = image.naturalWidth || image.width
-
     const canvas = new Canvas(width, height)
     const context = canvas.getContext('2d')
-
     if (!context) {
       return defaultRGB
     }
-
     context.drawImage(image, 0, 0)
-
     let data
     try {
       data = context.getImageData(0, 0, width, height)
     } catch (e) {
       return defaultRGB
     }
-
     while ((i += blockSize * 4) < data.data.length) {
       if (
         data.data[i] > 200 ||
@@ -242,14 +181,11 @@ export class AwesomeQR {
       rgb.g += data.data[i + 1]
       rgb.b += data.data[i + 2]
     }
-
     rgb.r = ~~(rgb.r / count)
     rgb.g = ~~(rgb.g / count)
     rgb.b = ~~(rgb.b / count)
-
     return rgb
   }
-
   static _drawDot(
     canvasContext,
     centerX,
@@ -265,7 +201,6 @@ export class AwesomeQR {
       dotScale * nSize,
     )
   }
-
   static _drawAlignProtector(canvasContext, centerX, centerY, nSize) {
     canvasContext.clearRect(
       (centerX - 2) * nSize,
@@ -280,7 +215,6 @@ export class AwesomeQR {
       5 * nSize,
     )
   }
-
   static _drawAlign(
     canvasContext,
     centerX,
@@ -374,8 +308,7 @@ export class AwesomeQR {
     }
     canvasContext.fillStyle = oldFillStyle
   }
-
-  async _draw() {
+  _draw() {
     var _a,
       _b,
       _c,
@@ -903,7 +836,9 @@ export class AwesomeQR {
             (bin, u8) => bin + String.fromCharCode(u8),
             '',
           )
-          return Promise.resolve(`data:image/gif;base64,${window.btoa(binary)}`)
+          return Promise.resolve(
+            `data:image/gif;base64,${globalThis.btoa(binary)}`,
+          )
         }
         return Promise.resolve(
           Buffer.from(gifOutput.stream().toFlattenUint8Array()),
@@ -944,7 +879,6 @@ export class AwesomeQR {
     })
   }
 }
-
 AwesomeQR.CorrectLevel = QRErrorCorrectLevel
 AwesomeQR.defaultComponentOptions = {
   data: {
@@ -982,7 +916,6 @@ AwesomeQR.defaultOptions = {
   logoBackgroundColor: '#ffffff',
   backgroundColor: '#ffffff',
 }
-
 function isElement(obj) {
   try {
     //Using W3 DOM2 (works for FF, Opera and Chrome)
