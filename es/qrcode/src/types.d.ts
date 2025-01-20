@@ -1,4 +1,5 @@
 /// <reference types="node" />
+/// <reference types="node" />
 import type { ComponentOptions, Options } from '../core/awesome-qr';
 export type QRCodeStatus = 'error' | 'success' | 'loading';
 export type QRCodeLevel = 0 | 1 | 2 | 3;

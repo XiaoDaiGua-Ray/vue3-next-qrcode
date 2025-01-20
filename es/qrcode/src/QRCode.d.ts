@@ -1,7 +1,8 @@
 /// <reference types="node" />
+/// <reference types="node" />
 import type { QRCodeRenderResponse } from './types';
 export declare const downloadBase64File: (base64: string, fileName?: string) => void;
-declare const _default: import("vue").DefineComponent<{
+declare const _default: import("vue").DefineComponent<import("vue").ExtractPropTypes<{
     defineProvider: {
         type: import("vue").PropType<Partial<import("./types").DefineProvider>>;
         default: undefined;
@@ -130,8 +131,8 @@ declare const _default: import("vue").DefineComponent<{
         type: import("vue").PropType<import("./types").MaybeArray<() => void>>;
         default: null;
     };
-}, {
-    qrcodeURL: import("vue").Ref<QRCodeRenderResponse>;
+}>, {
+    qrcodeURL: import("vue").Ref<QRCodeRenderResponse, QRCodeRenderResponse>;
     errorActionClick: () => void;
     cssVars: import("vue").ComputedRef<{
         '--ray-qrcode-width': string;
@@ -139,8 +140,8 @@ declare const _default: import("vue").DefineComponent<{
         '--ray-qrcode-border-radius': string;
         '--ray-qrcode-mask-color': string;
     } & Partial<import("./types").DefineProvider>>;
-    isClick: import("vue").Ref<boolean>;
-}, unknown, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").VNodeProps & import("vue").AllowedComponentProps & import("vue").ComponentCustomProps, Readonly<import("vue").ExtractPropTypes<{
+    isClick: import("vue").Ref<boolean, boolean>;
+}, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<import("vue").ExtractPropTypes<{
     defineProvider: {
         type: import("vue").PropType<Partial<import("./types").DefineProvider>>;
         default: undefined;
@@ -269,7 +270,7 @@ declare const _default: import("vue").DefineComponent<{
         type: import("vue").PropType<import("./types").MaybeArray<() => void>>;
         default: null;
     };
-}>>, {
+}>> & Readonly<{}>, {
     defineProvider: Partial<import("./types").DefineProvider>;
     maskColor: string;
     watchText: boolean;
@@ -293,5 +294,5 @@ declare const _default: import("vue").DefineComponent<{
     onSuccess: import("./types").MaybeArray<(dataURL: string | ArrayBuffer | Buffer | undefined) => void>;
     onError: import("./types").MaybeArray<(e: unknown) => void>;
     onReload: import("./types").MaybeArray<() => void>;
-}, {}>;
+}, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
 export default _default;

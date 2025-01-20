@@ -1,7 +1,8 @@
 import QRCode, { props } from './qrcode/index';
-import type { App } from 'vue';
+import type { App, ExtractPublicPropTypes } from 'vue';
 import type { QRCodeInst, QRCodeLevel, QRCodeStatus, QRCodeComponentProps, QRCodeOptions } from './qrcode/src/types';
-export type { QRCodeInst, QRCodeLevel, QRCodeStatus, QRCodeComponentProps, QRCodeOptions, };
+type QRCodeProps = ExtractPublicPropTypes<typeof props>;
+export type { QRCodeInst, QRCodeLevel, QRCodeStatus, QRCodeComponentProps, QRCodeOptions, QRCodeProps, };
 export { QRCode as Vue3NextQrcode, props as qrcodeProps };
 declare const _default: {
     install(app: App): void;

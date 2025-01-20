@@ -1,6 +1,6 @@
 import QRCode, { props } from './qrcode/index'
 
-import type { App } from 'vue'
+import type { App, ExtractPublicPropTypes } from 'vue'
 import type {
   QRCodeInst,
   QRCodeLevel,
@@ -9,12 +9,15 @@ import type {
   QRCodeOptions,
 } from './qrcode/src/types'
 
+type QRCodeProps = ExtractPublicPropTypes<typeof props>
+
 export type {
   QRCodeInst,
   QRCodeLevel,
   QRCodeStatus,
   QRCodeComponentProps,
   QRCodeOptions,
+  QRCodeProps,
 }
 
 export { QRCode as Vue3NextQrcode, props as qrcodeProps }

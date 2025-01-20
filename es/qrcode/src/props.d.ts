@@ -1,4 +1,5 @@
 /// <reference types="node" />
+/// <reference types="node" />
 import type { MaybeArray, QRCodeStatus, QRCodeLevel, DefineProvider } from './types';
 import type { PropType, VNode } from 'vue';
 import type { ComponentOptions } from '../core/awesome-qr';
