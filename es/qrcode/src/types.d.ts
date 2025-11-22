@@ -17,6 +17,27 @@ export type MaybeArray<T> = T | T[];
 export type AnyFC = (...args: any[]) => any;
 export type QRCodeComponentProps = ComponentOptions;
 export type QRCodeOptions = Options;
+export interface QRCodeBaseOptions {
+    text: string;
+    size?: number;
+    margin?: number;
+    correctLevel?: number;
+    maskPattern?: number;
+    version?: number;
+    components?: ComponentOptions;
+    colorDark?: string;
+    colorLight?: string;
+    autoColor?: boolean;
+    backgroundImage?: string;
+    backgroundDimming?: string;
+    gifBackground?: ArrayBuffer;
+    whiteMargin?: boolean;
+    logoImage?: string;
+    logoScale?: number;
+    logoMargin?: number;
+    logoCornerRadius?: number;
+    dotScale?: number;
+}
 export interface DefineProvider {
     '--r-qrcode-primary-color'?: string;
     '--r-qrcode-primary-color-2'?: string;
