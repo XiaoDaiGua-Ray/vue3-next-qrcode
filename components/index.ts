@@ -21,8 +21,18 @@ export type {
 }
 
 export { QRCode as Vue3NextQrcode, props as qrcodeProps }
+export { useQRCode } from './qrcode/src/useQRCode'
+export type {
+  UseQRCodeOptions,
+  UseQRCodeReturnType,
+} from './qrcode/src/useQRCode'
+export { QRCodeClient } from './qrcode/src/QRCodeClient'
+
+const install = (app: App): void => {
+  app.component(QRCode.name as string, QRCode)
+}
+
 export default {
-  install(app: App) {
-    app.component(QRCode.name as string, QRCode)
-  },
+  install,
+  Vue3NextQrcode: QRCode,
 }

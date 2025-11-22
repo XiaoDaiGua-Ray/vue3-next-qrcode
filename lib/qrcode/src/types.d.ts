@@ -18,11 +18,11 @@ export type AnyFC = (...args: any[]) => any;
 export type QRCodeComponentProps = ComponentOptions;
 export type QRCodeOptions = Options;
 export interface DefineProvider {
-    '--ray-qrcode-primary-color': string;
-    '--ray-qrcode-primary-color-2': string;
-    '--ray-qrcode-width': string;
-    '--ray-qrcode-height': string;
-    '--ray-qrcode-border-radius': string;
-    '--ray-qrcode-mask-color': string;
-    '--ray-qrcode-spin-size': string;
+    '--r-qrcode-primary-color'?: string;
+    '--r-qrcode-primary-color-2'?: string;
+    '--r-qrcode-width'?: string;
+    '--r-qrcode-height'?: string;
+    '--r-qrcode-border-radius'?: string;
+    '--r-qrcode-mask-color'?: string;
+    '--r-qrcode-spin-size'?: string;
 }

@@ -1,7 +1,6 @@
 /// <reference types="node" />
 /// <reference types="node" />
 import type { QRCodeRenderResponse } from './types';
-export declare const downloadBase64File: (base64: string, fileName?: string) => void;
 declare const _default: import("vue").DefineComponent<import("vue").ExtractPropTypes<{
     defineProvider: {
         type: import("vue").PropType<Partial<import("./types").DefineProvider>>;
@@ -133,14 +132,18 @@ declare const _default: import("vue").DefineComponent<import("vue").ExtractPropT
     };
 }>, {
     qrcodeURL: import("vue").Ref<QRCodeRenderResponse, QRCodeRenderResponse>;
-    errorActionClick: () => void;
     cssVars: import("vue").ComputedRef<{
-        '--ray-qrcode-width': string;
-        '--ray-qrcode-height': string;
-        '--ray-qrcode-border-radius': string;
-        '--ray-qrcode-mask-color': string;
-    } & Partial<import("./types").DefineProvider>>;
+        '--r-qrcode-primary-color'?: string | undefined;
+        '--r-qrcode-primary-color-2'?: string | undefined;
+        '--r-qrcode-width': string;
+        '--r-qrcode-height': string;
+        '--r-qrcode-border-radius': string;
+        '--r-qrcode-mask-color': string;
+        '--r-qrcode-spin-size'?: string | undefined;
+    }>;
     isClick: import("vue").Ref<boolean, boolean>;
+    loadingClass: import("vue").ComputedRef<"" | "r-qrcode__loading--custom" | "r-qrcode__loading">;
+    errorActionClick: () => void;
 }, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<import("vue").ExtractPropTypes<{
     defineProvider: {
         type: import("vue").PropType<Partial<import("./types").DefineProvider>>;

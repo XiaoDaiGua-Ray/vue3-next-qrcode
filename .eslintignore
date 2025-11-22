@@ -1,0 +1,9 @@
+node_modules
+dist
+es
+lib
+*.d.ts
+*.js
+!.*.cjs
+components/qrcode/core
+components/qrcode/deps

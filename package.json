@@ -1,18 +1,32 @@
 {
   "name": "vue3-next-qrcode",
   "private": false,
-  "version": "3.1.0",
+  "version": "4.0.0",
   "type": "module",
   "license": "MIT",
   "author": "Ray",
-  "main": "es/index.mjs",
+  "main": "lib/index.cjs",
   "module": "es/index.mjs",
   "types": "es/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./es/index.d.ts",
+      "import": "./es/index.mjs",
+      "require": "./lib/index.cjs"
+    },
+    "./es/style.css": "./es/style.css",
+    "./lib/style.css": "./lib/style.css"
+  },
   "files": [
     "lib",
     "es",
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "*.css",
+    "*.scss"
   ],
   "keywords": [
     "vue3",
@@ -22,9 +36,14 @@
   ],
   "scripts": {
     "dev": "vite --config vite.build.config.ts",
+    "build": "pnpm run build:lib && pnpm run build:umd",
     "build:lib": "vite build --config vite.build.config.ts",
     "build:umd": "vite build --config vite.bundle.config.ts",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "type-check": "vue-tsc --noEmit",
+    "lint": "eslint components --ext .ts,.tsx,.vue --fix",
+    "format": "prettier --write \"components/**/*.{ts,tsx,vue,scss}\" \"src/**/*.{ts,vue}\"",
+    "format:check": "prettier --check \"components/**/*.{ts,tsx,vue,scss}\" \"src/**/*.{ts,vue}\""
   },
   "dependencies": {
     "js-binary-schema-parser": "^2.0.3"
@@ -34,9 +53,12 @@
   },
   "devDependencies": {
     "@types/node": "^20.17.14",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
     "@vitejs/plugin-vue": "^4.6.2",
     "@vitejs/plugin-vue-jsx": "^3.1.0",
-    "add": "^2.0.6",
+    "eslint": "^8.57.0",
+    "eslint-plugin-vue": "^9.20.1",
     "prettier": "^3.4.2",
     "sass": "^1.83.4",
     "typescript": "^5.7.3",

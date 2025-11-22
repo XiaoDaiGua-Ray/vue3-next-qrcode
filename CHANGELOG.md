@@ -1,3 +1,56 @@
+## v4.0.0
+
+### Breaking Changes
+
+- 重构组件内部实现，使用 Composition API 优化性能
+- CSS 类名前缀从 `ray-qrcode` 统一改为 `r-qrcode`
+- 移除了部分未使用的内部方法
+
+### Feat
+
+- 🎉 新增 `useQRCode Composable`，提供更灵活的二维码生成能力
+- 新增 `QRCodeClient` 组件，专为 `Nuxt SSR` 环境优化
+- 新增 GIF 背景缓存机制，避免重复加载相同的 GIF
+- 优化网络请求，使用 `fetch` API 替代 `XMLHttpRequest`，更好地支持 `SSR`
+- 添加环境检测，在非浏览器环境下优雅降级
+- 新增防止并发渲染的锁机制，提升稳定性
+- 优化 `TypeScript` 类型定义，提供更好的类型推导
+- 新增 `data-component` 属性标记，替代非标准的 `img_tag`
+- 添加完整的 `ARIA` 无障碍支持（`role`、`aria-label`、键盘导航）
+- 优化 `CSS` 性能，使用 `inset` 简写和 `will-change` 优化动画
+
+### Improvements
+
+- 重构核心渲染逻辑，使用 `shallowRef` 优化大对象性能
+- 优化 watcher 管理，避免内存泄漏
+- 简化 `call` 工具函数，提供更好的类型安全
+- 优化错误处理，提供更清晰的错误信息
+- 改进 `CSS` 类名计算，使用 `computed` 提升性能
+- 优化下载方法，使用 `async/await` 简化 `Promise` 逻辑
+
+### Fix
+
+- 修复 `gifBackgroundURL` 在 `TSX` 组件中无法正确传递的问题（需使用 `camelCase`）
+- 修复 `GIF` 加载时序问题，确保 `GIF` 在渲染前加载完成
+- 修复 `CSS` 变量名不一致导致的样式问题
+- 修复 `defineProvider` 类型定义，所有属性改为可选
+
+### Dev Experience
+
+- 添加 `ESLint` 配置，统一代码风格
+- 添加 `.editorconfig` 统一编辑器配置
+- 添加 `.prettierignore` 和 `.eslintignore`
+- 优化 `VSCode` 工作区设置和推荐扩展
+- 添加 `GitHub Actions CI` 工作流
+- 优化 `package.json` 的 `exports` 字段，支持现代模块解析
+- 添加 `sideEffects` 配置，优化 `tree-shaking`
+
+### Documentation
+
+- 新增 `Nuxt 3` 使用示例（`examples/nuxt-example.vue`）
+- 新增 `useQRCode` `Hook` 使用示例
+- 添加 `Nuxt` 配置示例（`examples/nuxt.config.ts`）
+
 ## v3.1.0
 
 ### Feat

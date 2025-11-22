@@ -1,0 +1,8 @@
+node_modules
+dist
+es
+lib
+pnpm-lock.yaml
+CHANGELOG.md
+components/qrcode/core
+components/qrcode/deps

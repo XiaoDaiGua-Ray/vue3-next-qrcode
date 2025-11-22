@@ -9,9 +9,9 @@ export default defineConfig({
     vue(),
     vueJsx(),
     dts({
-      // @ts-ignore
       outputDir: ['es', 'lib'],
       include: ['components/**/*.ts', 'components/**/*.tsx'],
+      exclude: ['**/*.spec.ts', '**/*.test.ts'],
     }),
     viteSvgLoader({
       defaultImport: 'component',
@@ -20,7 +20,7 @@ export default defineConfig({
   build: {
     minify: false,
     rollupOptions: {
-      external: ['@v-c/utils', 'vue', 'awesome-qr'],
+      external: ['vue'],
       output: [
         {
           format: 'es',
@@ -51,6 +51,6 @@ export default defineConfig({
     },
   },
   ssr: {
-    external: ['@v-c/utils', 'vue', 'awesome-qr'],
+    external: ['vue'],
   },
 })

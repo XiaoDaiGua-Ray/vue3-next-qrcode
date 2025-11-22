@@ -15,6 +15,12 @@
     "target": "ESNext",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["ES2016", "DOM", "DOM.Iterable"]
-  }
+    "lib": ["ES2016", "DOM", "DOM.Iterable"],
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["components/**/*", "src/**/*"],
+  "exclude": ["node_modules", "dist", "es", "lib"]
 }

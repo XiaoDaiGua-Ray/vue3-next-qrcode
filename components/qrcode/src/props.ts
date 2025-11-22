@@ -107,7 +107,8 @@ const props = {
      */
     type: Number as PropType<QRCodeLevel>,
     default: 1,
-    validator: (value: unknown) => [0, 1, 2, 3].includes(value as number),
+    validator: (value: unknown): boolean =>
+      [0, 1, 2, 3].includes(value as number),
   },
   maskPattern: {
     /**
