@@ -69,8 +69,20 @@ export default defineComponent({
       isRendering.value = true
 
       try {
-        const { gifBackgroundURL, gifBackground, onSuccess, onError, ...ops } =
-          props
+        const {
+          gifBackgroundURL,
+          gifBackground,
+          onSuccess,
+          onError,
+          defineProvider,
+          maskColor,
+          watchText,
+          status,
+          errorDescription,
+          errorActionDescription,
+          onReload,
+          ...ops
+        } = props
 
         // Load GIF if needed
         if (gifBackgroundURL && !gifBuffer.value) {
