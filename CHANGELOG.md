@@ -1,3 +1,34 @@
+## v4.1.0-beta.0
+
+### Feat
+
+- 新增 `vue3-next-qrcode/client` 子路径导出，便于 `Nuxt` / `SSR` 场景显式使用客户端组件。
+- 新增 `vue3-next-qrcode/style.css` 样式导出，同时保留 `es/style.css` 与 `lib/style.css` 兼容路径。
+- 新增发布前 smoke 测试，覆盖 `ESM` / `CJS` / `client` 导入、样式导出解析、产物路径和 emoji 编码。
+
+### Improvements
+
+- 根入口改为 `SSR-safe` 导入，服务端导入不再触发 `window` / `document` 初始化。
+- 二维码渲染改为运行时懒加载核心渲染器，普通导入不再立即加载 `Canvas` / `GIF` 渲染实现。
+- `GIF` 解析与编码改为按需动态加载，并在支持时优先尝试 `Worker` 渲染，失败后自动回退主线程。
+- 用轻量浏览器 `Canvas` adapter 替换旧的 `skia-canvas` 浏览器 shim，避免把 `path-browserify` 和无用 Node shim 打进发布产物。
+- 文本编码改为 `TextEncoder`，提升 emoji、代理对和多语言文本的二维码编码稳定性。
+- 渲染并发策略调整为保留最新一次请求，避免快速更新时最终结果停留在旧文本或旧配置。
+- 工具链升级到 `Node 20+` 基线，更新 `Vite`、`vue-tsc`、`vite-plugin-dts`、`Sass` 等依赖并重建 `pnpm-lock.yaml`。
+
+### Fix
+
+- 修复 `AwesomeQR` 在无可用取色样本时生成 `rgb(NaN,NaN,NaN)` 的问题。
+- 修复 `AwesomeQR` 中 `gifFrames.forEach(async ...)` 不等待异步帧处理的隐患。
+- 修复浏览器构建中非 DOM 分支引用 `Buffer.from` 的类型与运行时风险。
+- 修复 `package.json` 与 `pnpm-lock.yaml` 不一致导致 `eslint` 无法安装/运行的问题。
+- 修复发布产物包含 `.pnpm` / `node_modules` 私有路径的问题。
+
+### Documentation
+
+- 更新中英文 README 的 `Nuxt` / `SSR` 说明，明确支持目标为 `SSR-safe` 导入 + `<ClientOnly>` 客户端渲染。
+- 新增 `docs/releases/v4.1.0-beta.0.md` 发布文档，记录变更细节、测试方式、包体积和 beta 安装命令。
+
 ## v4.0.0
 
 ### Breaking Changes

@@ -14,7 +14,7 @@
 
 English | [简体中文](https://github.com/XiaoDaiGua-Ray/vue3-next-qrcode/blob/main/README.zh-CN.md)
 
-A powerful QR Code component for Vue 3 with rich features including LOGO, GIF backgrounds, and full SSR support!
+A powerful QR Code component for Vue 3 with rich features including LOGO, GIF backgrounds, and SSR-safe imports!
 
 </div>
 
@@ -31,13 +31,13 @@ A powerful QR Code component for Vue 3 with rich features including LOGO, GIF ba
 - 🛸 Rich configuration properties
 - 🏟️ Cover most business scenarios
 - 🎯 Built with TypeScript, providing full type definition files
-- 🚀 Support SSR (Nuxt 3, Nuxt 2)
+- 🚀 SSR-safe imports for Nuxt and other SSR frameworks
 - 🎨 Composable API (`useQRCode`)
 - ♿ Accessibility support (ARIA labels, keyboard navigation)
-- 🎭 GIF background with automatic caching
-- 📦 Tree-shakable and optimized bundle size
+- 🎭 GIF background with automatic caching and lazy loading
+- 📦 SSR-safe, lazy renderer with optimized bundle entry
 - 🎨 Customizable styles with CSS variables
-- � Autso-refresh on text changes
+- 🔄 Auto-refresh on text and option changes
 - 💾 Built-in download functionality
 
 ## 📦 Installation
@@ -60,7 +60,7 @@ pnpm add vue3-next-qrcode
 ```vue
 <script setup lang="ts">
 import { Vue3NextQrcode } from 'vue3-next-qrcode'
-import 'vue3-next-qrcode/es/style.css'
+import 'vue3-next-qrcode/style.css'
 </script>
 
 <template>
@@ -267,7 +267,7 @@ await generate({
 
 ```typescript
 interface UseQRCodeReturn {
-  // The generated QR code (base64 string or ArrayBuffer)
+  // The generated QR code (base64 string, ArrayBuffer, or Uint8Array)
   qrcodeURL: Ref<QRCodeRenderResponse>
 
   // Loading state
@@ -286,6 +286,8 @@ interface UseQRCodeReturn {
 
 ## 🌐 SSR Support (Nuxt)
 
+The package entry is SSR-safe, so it can be imported during server-side rendering. QR image generation still needs a browser canvas environment, so render the component inside `<ClientOnly>` or another client-only boundary.
+
 ### Nuxt 3
 
 #### Method 1: Use `ClientOnly` (Recommended)
@@ -300,9 +302,9 @@ interface UseQRCodeReturn {
   </ClientOnly>
 </template>
 
-<script setup>
-import { QRCodeClient } from 'vue3-next-qrcode'
-import 'vue3-next-qrcode/es/style.css'
+<script setup lang="ts">
+import { QRCodeClient } from 'vue3-next-qrcode/client'
+import 'vue3-next-qrcode/style.css'
 </script>
 ```
 
@@ -317,7 +319,7 @@ import 'vue3-next-qrcode/es/style.css'
 import { ref, onMounted } from 'vue'
 
 const LazyQRCode = defineAsyncComponent(() =>
-  import('vue3-next-qrcode').then((m) => m.Vue3NextQrcode),
+  import('vue3-next-qrcode/client').then((m) => m.QRCodeClient),
 )
 
 const mounted = ref(false)
@@ -347,13 +349,15 @@ export default defineNuxtConfig({
   build: {
     transpile: ['vue3-next-qrcode'],
   },
-
-  vite: {
-    optimizeDeps: {
-      include: ['vue3-next-qrcode'],
-    },
-  },
 })
+```
+
+### Package Exports
+
+```ts
+import { Vue3NextQrcode, useQRCode } from 'vue3-next-qrcode'
+import { QRCodeClient } from 'vue3-next-qrcode/client'
+import 'vue3-next-qrcode/style.css'
 ```
 
 ## 🎨 Custom Styles with CSS Variables
@@ -438,7 +442,7 @@ const status: QRCodeStatus = 'loading' | 'error' | 'success'
 | logoMargin             | number                                                | 6                | Size of margins around the logo image in pixels                                                                      | \*          |
 | logoCornerRadius       | number                                                | 8                | Corner radius of the logo image in pixels                                                                            | \*          |
 | dotScale               | number                                                | 1                | Ratio of the real size to the full size of the blocks                                                                | \*          |
-| onSuccess              | (dataURL: ArrayBuffer \| string \| undefined) => void | null             | When the QR code is successfully generated, this callback is called                                                  | \*          |
+| onSuccess              | (dataURL: ArrayBuffer \| Uint8Array \| string \| undefined) => void | null             | When the QR code is successfully generated, this callback is called                                      | \*          |
 | onError                | (e: unknown) => void                                  | null             | When the QR code generation fails, this callback is called                                                           | \*          |
 | onReload               | () => void                                            | null             | When reload button is clicked, this callback is called, This method will not execute if the errorAction slot is used | \*          |
 
@@ -592,7 +596,7 @@ const handleError = (error) => {
 
 ### Q: How to use in Nuxt?
 
-A: Use `<ClientOnly>` wrapper or `QRCodeClient` component. See [SSR Support](#-ssr-support-nuxt) section.
+A: Use `<ClientOnly>` with `QRCodeClient` from `vue3-next-qrcode/client`. The root package can be imported during SSR, but rendering still happens in the browser.
 
 ### Q: How to download QR code?
 
@@ -600,7 +604,7 @@ A: Use the `downloadQRCode` method from component ref. See [Download QR Code](#d
 
 ### Q: Can I use GIF as background?
 
-A: Yes! Use `gifBackgroundURL` prop. The GIF will be automatically cached.
+A: Yes. Use `gifBackgroundURL`. GIF parsing and encoding are loaded only when needed and are automatically cached.
 
 ### Q: How to customize colors?
 

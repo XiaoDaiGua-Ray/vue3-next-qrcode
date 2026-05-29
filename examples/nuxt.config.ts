@@ -17,10 +17,5 @@ export default defineNuxtConfig({
     transpile: ['vue3-next-qrcode'],
   },
 
-  // Vite 配置
-  vite: {
-    optimizeDeps: {
-      include: ['vue3-next-qrcode'],
-    },
-  },
+  // 包入口可以在 SSR 阶段安全导入，二维码渲染仍建议放在 <ClientOnly> 内。
 })

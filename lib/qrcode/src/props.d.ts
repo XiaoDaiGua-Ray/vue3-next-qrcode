@@ -1,8 +1,6 @@
-/// <reference types="node" />
-/// <reference types="node" />
-import type { MaybeArray, QRCodeStatus, QRCodeLevel, DefineProvider } from './types';
-import type { PropType, VNode } from 'vue';
-import type { ComponentOptions } from '../core/awesome-qr';
+import { MaybeArray, QRCodeStatus, QRCodeLevel, DefineProvider } from './types';
+import { PropType, VNode } from 'vue';
+import { ComponentOptions } from '../core/awesome-qr';
 declare const props: {
     defineProvider: {
         /**
@@ -52,9 +50,7 @@ declare const props: {
          *
          * @default 二维码已过期
          */
-        type: PropType<string | VNode<import("vue").RendererNode, import("vue").RendererElement, {
-            [key: string]: any;
-        }>>;
+        type: PropType<string | VNode>;
         default: string;
     };
     errorActionDescription: {
@@ -185,7 +181,7 @@ declare const props: {
         /**
          *
          * Background image to be used in the QR code
-         * Accepts a `data:` string in web browsers or a Buffer in Node.js
+         * Accepts a `data:` string or URL in web browsers
          *
          * @default undefined
          */
@@ -234,7 +230,7 @@ declare const props: {
         /**
          *
          * Logo image to be displayed at the center of the QR code
-         * Accepts a `data:` string in web browsers or a Buffer in Node.js
+         * Accepts a `data:` string or URL in web browsers
          * When set to `undefined` or `null`, the logo is disabled
          *
          * @default undefined
@@ -286,7 +282,7 @@ declare const props: {
          *
          * When the QR code is successfully generated, this callback is called
          */
-        type: PropType<MaybeArray<(dataURL: ArrayBuffer | string | undefined | Buffer) => void>>;
+        type: PropType<MaybeArray<(dataURL: ArrayBuffer | Uint8Array | string | undefined) => void>>;
         default: null;
     };
     onError: {

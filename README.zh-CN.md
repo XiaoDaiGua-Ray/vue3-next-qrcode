@@ -14,7 +14,7 @@
 
 [English](https://github.com/XiaoDaiGua-Ray/vue3-next-qrcode/blob/main/README.md) | 简体中文
 
-一个功能强大的 Vue 3 二维码组件，支持 LOGO、GIF 背景和完整的 SSR 支持！
+一个功能强大的 Vue 3 二维码组件，支持 LOGO、GIF 背景和 SSR-safe 导入！
 
 </div>
 
@@ -31,13 +31,13 @@
 - 🛸 丰富的配置属性
 - 🏟️ 覆盖大多数业务场景
 - 🎯 使用 TypeScript 构建，提供完整的类型定义
-- 🚀 支持 SSR（Nuxt 3、Nuxt 2）
+- 🚀 Nuxt 等 SSR 框架可安全导入
 - 🎨 Composable API（`useQRCode`）
 - ♿ 无障碍支持（ARIA 标签、键盘导航）
-- 🎭 GIF 背景自动缓存
-- 📦 支持 Tree-shaking，优化打包体积
+- 🎭 GIF 背景自动缓存和懒加载
+- 📦 SSR-safe、懒加载渲染器和更轻的入口包体积
 - 🎨 支持 CSS 变量自定义样式
-- 🔄 文本变化自动刷新
+- 🔄 文本和渲染配置变化自动刷新
 - 💾 内置下载功能
 
 ## 📦 安装
@@ -60,7 +60,7 @@ pnpm add vue3-next-qrcode
 ```vue
 <script setup lang="ts">
 import { Vue3NextQrcode } from 'vue3-next-qrcode'
-import 'vue3-next-qrcode/es/style.css'
+import 'vue3-next-qrcode/style.css'
 </script>
 
 <template>
@@ -267,7 +267,7 @@ await generate({
 
 ```typescript
 interface UseQRCodeReturn {
-  // 生成的二维码（base64 字符串或 ArrayBuffer）
+  // 生成的二维码（base64 字符串、ArrayBuffer 或 Uint8Array）
   qrcodeURL: Ref<QRCodeRenderResponse>
 
   // 加载状态
@@ -286,6 +286,8 @@ interface UseQRCodeReturn {
 
 ## 🌐 SSR 支持（Nuxt）
 
+包入口现在可以在服务端安全导入，不会在导入阶段访问 `window` / `document`。二维码图片生成仍然需要浏览器 Canvas 环境，因此组件渲染请放在 `<ClientOnly>` 或等价的客户端边界内。
+
 ### Nuxt 3
 
 #### 方法 1：使用 `ClientOnly`（推荐）
@@ -300,9 +302,9 @@ interface UseQRCodeReturn {
   </ClientOnly>
 </template>
 
-<script setup>
-import { QRCodeClient } from 'vue3-next-qrcode'
-import 'vue3-next-qrcode/es/style.css'
+<script setup lang="ts">
+import { QRCodeClient } from 'vue3-next-qrcode/client'
+import 'vue3-next-qrcode/style.css'
 </script>
 ```
 
@@ -317,7 +319,7 @@ import 'vue3-next-qrcode/es/style.css'
 import { ref, onMounted } from 'vue'
 
 const LazyQRCode = defineAsyncComponent(() =>
-  import('vue3-next-qrcode').then((m) => m.Vue3NextQrcode),
+  import('vue3-next-qrcode/client').then((m) => m.QRCodeClient),
 )
 
 const mounted = ref(false)
@@ -347,13 +349,15 @@ export default defineNuxtConfig({
   build: {
     transpile: ['vue3-next-qrcode'],
   },
-
-  vite: {
-    optimizeDeps: {
-      include: ['vue3-next-qrcode'],
-    },
-  },
 })
+```
+
+### 包导出
+
+```ts
+import { Vue3NextQrcode, useQRCode } from 'vue3-next-qrcode'
+import { QRCodeClient } from 'vue3-next-qrcode/client'
+import 'vue3-next-qrcode/style.css'
 ```
 
 ## 🎨 使用 CSS 变量自定义样式
@@ -438,7 +442,7 @@ const status: QRCodeStatus = 'loading' | 'error' | 'success'
 | logoMargin             | number                                                | 6                | Logo 图片周围的边距大小（像素）                                           | \*       |
 | logoCornerRadius       | number                                                | 8                | Logo 图片的圆角半径（像素）                                               | \*       |
 | dotScale               | number                                                | 1                | 块的实际大小与完整大小的比例                                              | \*       |
-| onSuccess              | (dataURL: ArrayBuffer \| string \| undefined) => void | null             | 二维码成功生成时调用此回调                                                | \*       |
+| onSuccess              | (dataURL: ArrayBuffer \| Uint8Array \| string \| undefined) => void | null             | 二维码成功生成时调用此回调                                    | \*       |
 | onError                | (e: unknown) => void                                  | null             | 二维码生成失败时调用此回调                                                | \*       |
 | onReload               | () => void                                            | null             | 点击重新加载按钮时调用此回调，如果使用了 errorAction 插槽则此方法不会执行 | \*       |
 
@@ -592,7 +596,7 @@ const handleError = (error) => {
 
 ### 问：如何在 Nuxt 中使用？
 
-答：使用 `<ClientOnly>` 包裹或使用 `QRCodeClient` 组件。参见 [SSR 支持](#-ssr-支持nuxt) 部分。
+答：使用 `<ClientOnly>` 包裹从 `vue3-next-qrcode/client` 导入的 `QRCodeClient`。根包可在 SSR 阶段安全导入，但二维码渲染仍在浏览器端完成。
 
 ### 问：如何下载二维码？
 
@@ -600,7 +604,7 @@ const handleError = (error) => {
 
 ### 问：可以使用 GIF 作为背景吗？
 
-答：可以！使用 `gifBackgroundURL` 属性。GIF 会自动缓存。
+答：可以！使用 `gifBackgroundURL` 属性。GIF 解析与编码只会在需要时懒加载，并会自动缓存。
 
 ### 问：如何自定义颜色？
 

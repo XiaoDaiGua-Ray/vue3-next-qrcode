@@ -2,25 +2,31 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import dts from 'vite-plugin-dts'
-import viteSvgLoader from 'vite-svg-loader'
+
+const external = (id: string): boolean =>
+  id === 'vue' || id.startsWith('js-binary-schema-parser/')
 
 export default defineConfig({
+  define: {
+    __VUE3_NEXT_QRCODE_ENABLE_WORKER__: 'true',
+  },
   plugins: [
     vue(),
     vueJsx(),
     dts({
-      outputDir: ['es', 'lib'],
+      outDirs: ['es', 'lib'],
+      entryRoot: 'components',
       include: ['components/**/*.ts', 'components/**/*.tsx'],
       exclude: ['**/*.spec.ts', '**/*.test.ts'],
     }),
-    viteSvgLoader({
-      defaultImport: 'component',
-    }),
   ],
+  worker: {
+    format: 'es',
+  },
   build: {
-    minify: false,
+    minify: 'esbuild',
     rollupOptions: {
-      external: ['vue'],
+      external,
       output: [
         {
           format: 'es',
@@ -46,8 +52,11 @@ export default defineConfig({
       ],
     },
     lib: {
-      entry: 'components/index.ts',
-      formats: ['es', 'cjs'],
+      entry: {
+        index: 'components/index.ts',
+        client: 'components/client.ts',
+      },
+      cssFileName: 'style',
     },
   },
   ssr: {

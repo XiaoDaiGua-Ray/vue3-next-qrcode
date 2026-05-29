@@ -1,8 +1,5 @@
-import canvas from '../deps/skia-canvas-lib/lib/browser'
-const { Canvas } = canvas
-import { decompressFrames, parseGIF } from './gifuct-js/index'
+import { Canvas, isCanvasElement } from './canvas.js'
 import { QRCodeModel, QRErrorCorrectLevel, QRUtil } from './qrcode'
-import GIFEncoder from './gif.js/GIFEncoder'
 
 const defaultScale = 0.4
 async function loadImage(url) {
@@ -129,9 +126,11 @@ export class AwesomeQR {
     let rgb = { r: 0, g: 0, b: 0 }
     let count = 0
 
-    // 使用 for...of 优化遍历
     for (let i = 0; i < data.length; i += blockSize * 4) {
-      const [r, g, b] = data.slice(i, i + 3)
+      const r = data[i]
+      const g = data[i + 1]
+      const b = data[i + 2]
+
       if (r > 200 || g > 200 || b > 200) continue
 
       count++
@@ -139,6 +138,8 @@ export class AwesomeQR {
       rgb.g += g
       rgb.b += b
     }
+
+    if (count === 0) return defaultRGB
 
     return {
       r: ~~(rgb.r / count),
@@ -270,7 +271,16 @@ export class AwesomeQR {
     const backgroundCanvasContext = backgroundCanvas.getContext('2d')
     let parsedGIFBackground = null
     let gifFrames = []
+    let GIFEncoder
     if (!!this.options.gifBackground) {
+      const [gifModule, encoderModule] = await Promise.all([
+        import('./gifuct-js/index.js'),
+        import('./gif.js/GIFEncoder.js'),
+      ])
+      const { decompressFrames, parseGIF } = gifModule
+
+      GIFEncoder = encoderModule.default
+
       const gif = parseGIF(this.options.gifBackground)
       parsedGIFBackground = gif
       gifFrames = decompressFrames(gif, true)
@@ -288,10 +298,12 @@ export class AwesomeQR {
           g += c[1]
           b += c[2]
         }
-        r = ~~(r / count)
-        g = ~~(g / count)
-        b = ~~(b / count)
-        this.options.colorDark = `rgb(${r},${g},${b})`
+        if (count > 0) {
+          r = ~~(r / count)
+          g = ~~(g / count)
+          b = ~~(b / count)
+          this.options.colorDark = `rgb(${r},${g},${b})`
+        }
       }
     } else if (!!this.options.backgroundImage) {
       const backgroundImage = await loadImage(this.options.backgroundImage)
@@ -664,7 +676,7 @@ export class AwesomeQR {
       let patchCanvas
       let patchCanvasContext
       let patchData
-      gifFrames.forEach(async function (frame) {
+      for (const frame of gifFrames) {
         if (!gifOutput) {
           gifOutput = new GIFEncoder(rawSize, rawSize)
           gifOutput.setDelay(frame.delay)
@@ -733,7 +745,7 @@ export class AwesomeQR {
           outCanvasContext.getImageData(0, 0, outCanvas.width, outCanvas.height)
             .data,
         )
-      })
+      }
       if (!gifOutput) {
         throw new Error('No frames.')
       }
@@ -748,9 +760,7 @@ export class AwesomeQR {
           `data:image/gif;base64,${globalThis.btoa(binary)}`,
         )
       }
-      return Promise.resolve(
-        Buffer.from(gifOutput.stream().toFlattenUint8Array()),
-      )
+      return Promise.resolve(gifOutput.stream().toFlattenUint8Array())
     } else {
       // Swap and merge the foreground and the background
       backgroundCanvasContext.drawImage(
@@ -833,18 +843,5 @@ AwesomeQR.defaultOptions = {
   backgroundColor: '#ffffff',
 }
 function isElement(obj) {
-  try {
-    //Using W3 DOM2 (works for FF, Opera and Chrome)
-    return obj instanceof HTMLElement
-  } catch (e) {
-    //Browsers not supporting W3 DOM2 don't have HTMLElement and
-    //an exception is thrown and we end up here. Testing some
-    //properties that all elements have (works on IE7)
-    return (
-      typeof obj === 'object' &&
-      obj.nodeType === 1 &&
-      typeof obj.style === 'object' &&
-      typeof obj.ownerDocument === 'object'
-    )
-  }
+  return isCanvasElement(obj)
 }

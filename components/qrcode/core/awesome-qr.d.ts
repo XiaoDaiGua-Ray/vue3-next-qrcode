@@ -140,11 +140,11 @@ export declare type Options = {
     /**
      * Background image to be used in the QR code.
      *
-     * Accepts a `data:` string in web browsers or a Buffer in Node.js.
+     * Accepts a `data:` string or URL in web browsers.
      *
      * @defaultValue undefined
      */
-    backgroundImage?: string | Buffer;
+    backgroundImage?: string;
     /**
      * Color of the dimming mask above the background image.
      *
@@ -170,13 +170,13 @@ export declare type Options = {
     /**
      * Logo image to be displayed at the center of the QR code.
      *
-     * Accepts a `data:` string in web browsers or a Buffer in Node.js.
+     * Accepts a `data:` string or URL in web browsers.
      *
      * When set to `undefined` or `null`, the logo is disabled.
      *
      * @defaultValue undefined
      */
-    logoImage?: string | Buffer;
+    logoImage?: string;
     /**
      * Ratio of the logo size to the QR code size.
      *
@@ -222,7 +222,7 @@ export declare class AwesomeQR {
     private static defaultComponentOptions;
     static defaultOptions: Options;
     constructor(options: Partial<Options>);
-    draw(): Promise<Buffer | ArrayBuffer | string | undefined>;
+    draw(): Promise<Uint8Array | ArrayBuffer | string | undefined>;
     private _clear;
     private static _prepareRoundedCornerClip;
     private static _getAverageRGB;

@@ -1,7 +1,7 @@
 {
   "name": "vue3-next-qrcode",
   "private": false,
-  "version": "4.0.0",
+  "version": "4.1.0-beta.0",
   "type": "module",
   "license": "MIT",
   "author": "Ray",
@@ -14,6 +14,12 @@
       "import": "./es/index.mjs",
       "require": "./lib/index.cjs"
     },
+    "./client": {
+      "types": "./es/client.d.ts",
+      "import": "./es/client.mjs",
+      "require": "./lib/client.cjs"
+    },
+    "./style.css": "./es/style.css",
     "./es/style.css": "./es/style.css",
     "./lib/style.css": "./lib/style.css"
   },
@@ -41,7 +47,10 @@
     "build:umd": "vite build --config vite.bundle.config.ts",
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit",
-    "lint": "eslint components --ext .ts,.tsx,.vue --fix",
+    "lint": "eslint components src --ext .ts,.tsx,.vue",
+    "lint:fix": "eslint components src --ext .ts,.tsx,.vue --fix",
+    "test:smoke": "node scripts/smoke.mjs",
+    "test": "pnpm run type-check && pnpm run lint && pnpm run format:check && pnpm run build && pnpm run test:smoke",
     "format": "prettier --write \"components/**/*.{ts,tsx,vue,scss}\" \"src/**/*.{ts,vue}\"",
     "format:check": "prettier --check \"components/**/*.{ts,tsx,vue,scss}\" \"src/**/*.{ts,vue}\""
   },
@@ -52,20 +61,20 @@
     "vue": "^3.0.1"
   },
   "devDependencies": {
-    "@types/node": "^20.17.14",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "@vitejs/plugin-vue": "^4.6.2",
-    "@vitejs/plugin-vue-jsx": "^3.1.0",
-    "eslint": "^8.57.0",
-    "eslint-plugin-vue": "^9.20.1",
-    "prettier": "^3.4.2",
-    "sass": "^1.83.4",
-    "typescript": "^5.7.3",
-    "vite": "^4.5.7",
-    "vite-plugin-dts": "^2.3.0",
-    "vite-svg-loader": "^4.0.0",
-    "vue-tsc": "^1.8.27"
+    "@types/node": "^25.9.1",
+    "@typescript-eslint/eslint-plugin": "^8.60.0",
+    "@typescript-eslint/parser": "^8.60.0",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "@vitejs/plugin-vue-jsx": "^5.1.5",
+    "eslint": "^8.57.1",
+    "eslint-plugin-vue": "^10.9.1",
+    "prettier": "^3.8.3",
+    "sass": "^1.100.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.14",
+    "vite-plugin-dts": "^5.0.1",
+    "vue": "^3.5.35",
+    "vue-tsc": "^3.3.2"
   },
   "description": "<p align=\"center\">   <a href=\"https://github.com/XiaoDaiGua-Ray/vue3-next-qrcode\">     <img width=\"216\" src=\"https://usc1.contabostorage.com/c2e495d7890844d392e8ec0c6e5d77eb:alist/ray/ray.svg?sign=ZklU9Bh5b6oKp1X0LOhGwkx4g5mW4wk_w9Jt5zlZ5EQ=:0\">   </a> </p> <p align=\"center\">   <a href=\"https://www.npmjs.com/package/vue3-next-qrcode?activeTab=readme\"><img src=\"https://img.shields.io/npm/v/vue3-next-qrcode.svg\" alt=\"npm package\"></a>   <a href=\"https://github.com/XiaoDaiGua-Ray/vue3-next-qrcode/blob/main/LICENSE\"><img src=\"https://img.shields.io/github/license/XiaoDaiGua-Ray/vue3-next-qrcode\" alt=\"LICENSE\"></a> </p>",
   "directories": {

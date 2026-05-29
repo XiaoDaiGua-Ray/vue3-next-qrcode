@@ -1,4 +1,4 @@
-import type { MaybeArray } from './types';
+import { MaybeArray } from './types';
 /**
  * Call one or multiple functions with the same arguments
  */

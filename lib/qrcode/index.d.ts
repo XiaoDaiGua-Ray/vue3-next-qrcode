@@ -1,4 +1,4 @@
-import QRCode from './src/QRCode';
-import props from './src/props';
+import { default as QRCode } from './src/QRCode';
+import { default as props } from './src/props';
 export { props };
 export default QRCode;

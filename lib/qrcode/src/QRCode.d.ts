@@ -1,9 +1,7 @@
-/// <reference types="node" />
-/// <reference types="node" />
-import type { QRCodeRenderResponse } from './types';
-declare const _default: import("vue").DefineComponent<import("vue").ExtractPropTypes<{
+import { QRCodeRenderResponse } from './types';
+declare const _default: import('vue').DefineComponent<import('vue').ExtractPropTypes<{
     defineProvider: {
-        type: import("vue").PropType<Partial<import("./types").DefineProvider>>;
+        type: import('vue').PropType<Partial<import('./types').DefineProvider>>;
         default: undefined;
     };
     maskColor: {
@@ -15,12 +13,10 @@ declare const _default: import("vue").DefineComponent<import("vue").ExtractPropT
         default: boolean;
     };
     status: {
-        type: import("vue").PropType<import("./types").QRCodeStatus>;
+        type: import('vue').PropType<import('./types').QRCodeStatus>;
     };
     errorDescription: {
-        type: import("vue").PropType<string | import("vue").VNode<import("vue").RendererNode, import("vue").RendererElement, {
-            [key: string]: any;
-        }>>;
+        type: import('vue').PropType<string | import('vue').VNode>;
         default: string;
     };
     errorActionDescription: {
@@ -40,7 +36,7 @@ declare const _default: import("vue").DefineComponent<import("vue").ExtractPropT
         default: number;
     };
     correctLevel: {
-        type: import("vue").PropType<import("./types").QRCodeLevel>;
+        type: import('vue').PropType<import('./types').QRCodeLevel>;
         default: number;
         validator: (value: unknown) => boolean;
     };
@@ -51,7 +47,7 @@ declare const _default: import("vue").DefineComponent<import("vue").ExtractPropT
         type: NumberConstructor;
     };
     components: {
-        type: import("vue").PropType<import("../core/awesome-qr").ComponentOptions>;
+        type: import('vue').PropType<import('../core/awesome-qr').ComponentOptions>;
         default: () => {
             data: {
                 scale: number;
@@ -119,34 +115,34 @@ declare const _default: import("vue").DefineComponent<import("vue").ExtractPropT
         default: number;
     };
     onSuccess: {
-        type: import("vue").PropType<import("./types").MaybeArray<(dataURL: string | ArrayBuffer | Buffer | undefined) => void>>;
+        type: import('vue').PropType<import('./types').MaybeArray<(dataURL: ArrayBuffer | Uint8Array | string | undefined) => void>>;
         default: null;
     };
     onError: {
-        type: import("vue").PropType<import("./types").MaybeArray<(e: unknown) => void>>;
+        type: import('vue').PropType<import('./types').MaybeArray<(e: unknown) => void>>;
         default: null;
     };
     onReload: {
-        type: import("vue").PropType<import("./types").MaybeArray<() => void>>;
+        type: import('vue').PropType<import('./types').MaybeArray<() => void>>;
         default: null;
     };
 }>, {
-    qrcodeURL: import("vue").Ref<QRCodeRenderResponse, QRCodeRenderResponse>;
-    cssVars: import("vue").ComputedRef<{
-        '--r-qrcode-primary-color'?: string | undefined;
-        '--r-qrcode-primary-color-2'?: string | undefined;
+    qrcodeURL: import('vue').Ref<QRCodeRenderResponse, QRCodeRenderResponse>;
+    cssVars: import('vue').ComputedRef<{
+        '--r-qrcode-primary-color'?: string;
+        '--r-qrcode-primary-color-2'?: string;
         '--r-qrcode-width': string;
         '--r-qrcode-height': string;
         '--r-qrcode-border-radius': string;
         '--r-qrcode-mask-color': string;
-        '--r-qrcode-spin-size'?: string | undefined;
+        '--r-qrcode-spin-size'?: string;
     }>;
-    isClick: import("vue").Ref<boolean, boolean>;
-    loadingClass: import("vue").ComputedRef<"" | "r-qrcode__loading--custom" | "r-qrcode__loading">;
+    isClick: import('vue').Ref<boolean, boolean>;
+    loadingClass: import('vue').ComputedRef<"" | "r-qrcode__loading--custom" | "r-qrcode__loading">;
     errorActionClick: () => void;
-}, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<import("vue").ExtractPropTypes<{
+}, {}, {}, {}, import('vue').ComponentOptionsMixin, import('vue').ComponentOptionsMixin, {}, string, import('vue').PublicProps, Readonly<import('vue').ExtractPropTypes<{
     defineProvider: {
-        type: import("vue").PropType<Partial<import("./types").DefineProvider>>;
+        type: import('vue').PropType<Partial<import('./types').DefineProvider>>;
         default: undefined;
     };
     maskColor: {
@@ -158,12 +154,10 @@ declare const _default: import("vue").DefineComponent<import("vue").ExtractPropT
         default: boolean;
     };
     status: {
-        type: import("vue").PropType<import("./types").QRCodeStatus>;
+        type: import('vue').PropType<import('./types').QRCodeStatus>;
     };
     errorDescription: {
-        type: import("vue").PropType<string | import("vue").VNode<import("vue").RendererNode, import("vue").RendererElement, {
-            [key: string]: any;
-        }>>;
+        type: import('vue').PropType<string | import('vue').VNode>;
         default: string;
     };
     errorActionDescription: {
@@ -183,7 +177,7 @@ declare const _default: import("vue").DefineComponent<import("vue").ExtractPropT
         default: number;
     };
     correctLevel: {
-        type: import("vue").PropType<import("./types").QRCodeLevel>;
+        type: import('vue').PropType<import('./types').QRCodeLevel>;
         default: number;
         validator: (value: unknown) => boolean;
     };
@@ -194,7 +188,7 @@ declare const _default: import("vue").DefineComponent<import("vue").ExtractPropT
         type: NumberConstructor;
     };
     components: {
-        type: import("vue").PropType<import("../core/awesome-qr").ComponentOptions>;
+        type: import('vue').PropType<import('../core/awesome-qr').ComponentOptions>;
         default: () => {
             data: {
                 scale: number;
@@ -262,29 +256,22 @@ declare const _default: import("vue").DefineComponent<import("vue").ExtractPropT
         default: number;
     };
     onSuccess: {
-        type: import("vue").PropType<import("./types").MaybeArray<(dataURL: string | ArrayBuffer | Buffer | undefined) => void>>;
+        type: import('vue').PropType<import('./types').MaybeArray<(dataURL: ArrayBuffer | Uint8Array | string | undefined) => void>>;
         default: null;
     };
     onError: {
-        type: import("vue").PropType<import("./types").MaybeArray<(e: unknown) => void>>;
+        type: import('vue').PropType<import('./types').MaybeArray<(e: unknown) => void>>;
         default: null;
     };
     onReload: {
-        type: import("vue").PropType<import("./types").MaybeArray<() => void>>;
+        type: import('vue').PropType<import('./types').MaybeArray<() => void>>;
         default: null;
     };
 }>> & Readonly<{}>, {
-    defineProvider: Partial<import("./types").DefineProvider>;
-    maskColor: string;
-    watchText: boolean;
-    errorDescription: string | import("vue").VNode<import("vue").RendererNode, import("vue").RendererElement, {
-        [key: string]: any;
-    }>;
-    errorActionDescription: string;
     size: number;
     margin: number;
-    correctLevel: import("./types").QRCodeLevel;
-    components: import("../core/awesome-qr").ComponentOptions;
+    correctLevel: import('./types').QRCodeLevel;
+    components: import('../core/awesome-qr').ComponentOptions;
     colorDark: string;
     colorLight: string;
     autoColor: boolean;
@@ -294,8 +281,15 @@ declare const _default: import("vue").DefineComponent<import("vue").ExtractPropT
     logoMargin: number;
     logoCornerRadius: number;
     dotScale: number;
-    onSuccess: import("./types").MaybeArray<(dataURL: string | ArrayBuffer | Buffer | undefined) => void>;
-    onError: import("./types").MaybeArray<(e: unknown) => void>;
-    onReload: import("./types").MaybeArray<() => void>;
-}, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
+    defineProvider: Partial<import('./types').DefineProvider>;
+    maskColor: string;
+    watchText: boolean;
+    errorDescription: string | import('vue').VNode<import('vue').RendererNode, import('vue').RendererElement, {
+        [key: string]: any;
+    }>;
+    errorActionDescription: string;
+    onSuccess: import('./types').MaybeArray<(dataURL: ArrayBuffer | Uint8Array | string | undefined) => void>;
+    onError: import('./types').MaybeArray<(e: unknown) => void>;
+    onReload: import('./types').MaybeArray<() => void>;
+}, {}, {}, {}, string, import('vue').ComponentProvideOptions, true, {}, any>;
 export default _default;

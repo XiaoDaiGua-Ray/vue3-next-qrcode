@@ -1,9 +1,7 @@
-/// <reference types="node" />
-/// <reference types="node" />
-import type { ComponentOptions, Options } from '../core/awesome-qr';
+import { ComponentOptions, Options } from '../core/awesome-qr';
 export type QRCodeStatus = 'error' | 'success' | 'loading';
 export type QRCodeLevel = 0 | 1 | 2 | 3;
-export type QRCodeRenderResponse = string | ArrayBuffer | Buffer | undefined;
+export type QRCodeRenderResponse = string | ArrayBuffer | Uint8Array | undefined;
 export type QRCodeInst = {
     /**
      *

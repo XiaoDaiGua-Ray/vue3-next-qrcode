@@ -44,11 +44,24 @@ function _getTypeNumber(sText, nCorrectLevel) {
   }
   return nType
 }
+function _encodeText(data) {
+  if (typeof TextEncoder !== 'undefined') {
+    return Array.from(new TextEncoder().encode(data))
+  }
+
+  const encoded = unescape(encodeURIComponent(data))
+  const bytes = []
+
+  for (let i = 0; i < encoded.length; i++) {
+    bytes.push(encoded.charCodeAt(i))
+  }
+
+  return bytes
+}
 function _getUTF8Length(sText) {
-  var replacedText = encodeURI(sText)
-    .toString()
-    .replace(/\%[0-9a-fA-F]{2}/g, 'a')
-  return replacedText.length + (replacedText.length != Number(sText) ? 3 : 0)
+  const bytes = _encodeText(sText)
+
+  return bytes.length + (bytes.length !== sText.length ? 3 : 0)
 }
 function checkQRVersion(version, sText, nCorrectLevel) {
   const length = getUTF8Length(sText)
@@ -65,8 +78,9 @@ function checkQRVersion(version, sText, nCorrectLevel) {
   return length <= nLimit
 }
 function getUTF8Length(sText) {
-  const replacedText = encodeURI(sText).replace(/%[0-9a-fA-F]{2}/g, 'a')
-  return replacedText.length + (replacedText.length !== sText.length ? 3 : 0)
+  const bytes = _encodeText(sText)
+
+  return bytes.length + (bytes.length !== sText.length ? 3 : 0)
 }
 class QR8bitByte {
   constructor(data) {
@@ -75,33 +89,8 @@ class QR8bitByte {
     this.parsedData = this.parseData()
   }
   parseData() {
-    const byteArrays = []
+    const parsedData = _encodeText(this.data)
 
-    for (const char of this.data) {
-      const code = char.charCodeAt(0)
-      const bytes = []
-
-      if (code > 0x10000) {
-        bytes.push(
-          0xf0 | ((code & 0x1c0000) >>> 18),
-          0x80 | ((code & 0x3f000) >>> 12),
-          0x80 | ((code & 0xfc0) >>> 6),
-          0x80 | (code & 0x3f),
-        )
-      } else if (code > 0x800) {
-        bytes.push(
-          0xe0 | ((code & 0xf000) >>> 12),
-          0x80 | ((code & 0xfc0) >>> 6),
-          0x80 | (code & 0x3f),
-        )
-      } else if (code > 0x80) {
-        bytes.push(0xc0 | ((code & 0x7c0) >>> 6), 0x80 | (code & 0x3f))
-      } else {
-        bytes.push(code)
-      }
-      byteArrays.push(bytes)
-    }
-    const parsedData = [].concat(...byteArrays)
     if (parsedData.length !== this.data.length) {
       parsedData.unshift(239, 187, 191) // BOM
     }

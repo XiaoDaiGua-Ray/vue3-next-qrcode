@@ -1,8 +1,8 @@
 import './index.scss'
 
 import props from './props'
-import { AwesomeQR } from '../core'
 import { call } from './call'
+import { renderQRCode as renderQRCodeImage } from './renderer'
 import { downloadBase64File, readGIFAsArrayBuffer } from './utils'
 import {
   ref,
@@ -14,7 +14,7 @@ import {
   shallowRef,
 } from 'vue'
 
-import type { QRCodeRenderResponse } from './types'
+import type { QRCodeBaseOptions, QRCodeRenderResponse } from './types'
 
 export default defineComponent({
   name: 'Vue3NextQrcode',
@@ -27,6 +27,8 @@ export default defineComponent({
     const gifBuffer = shallowRef<ArrayBuffer | null>(null)
     const isClick = ref(false)
     const isRendering = ref(false)
+    const needsRerender = ref(false)
+    let renderRequestId = 0
 
     // Computed
     const cssVars = computed(() => {
@@ -63,24 +65,29 @@ export default defineComponent({
     }
 
     const renderQRCode = async (): Promise<void> => {
-      // Prevent concurrent rendering
-      if (isRendering.value) return
+      const requestId = ++renderRequestId
+
+      if (isRendering.value) {
+        needsRerender.value = true
+        return
+      }
 
       isRendering.value = true
+      needsRerender.value = false
 
       try {
         const {
           gifBackgroundURL,
           gifBackground,
           onSuccess,
-          onError,
-          defineProvider,
-          maskColor,
-          watchText,
-          status,
-          errorDescription,
-          errorActionDescription,
-          onReload,
+          onError: _onError,
+          defineProvider: _defineProvider,
+          maskColor: _maskColor,
+          watchText: _watchText,
+          status: _status,
+          errorDescription: _errorDescription,
+          errorActionDescription: _errorActionDescription,
+          onReload: _onReload,
           ...ops
         } = props
 
@@ -89,10 +96,14 @@ export default defineComponent({
           await loadGIFFromURL(gifBackgroundURL)
         }
 
-        const result = await new AwesomeQR({
+        const renderOptions: QRCodeBaseOptions = {
           ...ops,
-          gifBackground: gifBuffer.value || undefined,
-        }).draw()
+          text: props.text ?? '',
+          gifBackground: gifBuffer.value || gifBackground || undefined,
+        }
+        const result = await renderQRCodeImage(renderOptions)
+
+        if (requestId !== renderRequestId) return
 
         qrcodeURL.value = result
 
@@ -107,6 +118,10 @@ export default defineComponent({
         }
       } finally {
         isRendering.value = false
+
+        if (needsRerender.value) {
+          renderQRCode()
+        }
       }
     }
 
@@ -129,9 +144,31 @@ export default defineComponent({
     }
 
     // Watchers
-    const stopTextWatch = props.watchText
-      ? watch(() => props.text, renderQRCode)
-      : void 0
+    const renderOptionValues = computed(() => [
+      props.watchText ? props.text : null,
+      props.size,
+      props.margin,
+      props.correctLevel,
+      props.maskPattern,
+      props.version,
+      props.components,
+      props.colorDark,
+      props.colorLight,
+      props.autoColor,
+      props.backgroundImage,
+      props.backgroundDimming,
+      props.gifBackground,
+      props.whiteMargin,
+      props.logoImage,
+      props.logoScale,
+      props.logoMargin,
+      props.logoCornerRadius,
+      props.dotScale,
+    ])
+
+    const stopOptionsWatch = watch(renderOptionValues, renderQRCode, {
+      deep: true,
+    })
 
     const stopGifWatch = watch(
       () => props.gifBackgroundURL,
@@ -151,7 +188,7 @@ export default defineComponent({
     })
 
     onBeforeUnmount(() => {
-      stopTextWatch?.()
+      stopOptionsWatch()
       stopGifWatch()
     })
 

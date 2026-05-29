@@ -62,12 +62,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Vue3NextQrcode, QRCodeClient, useQRCode } from 'vue3-next-qrcode'
-import 'vue3-next-qrcode/es/style.css'
+import { Vue3NextQrcode, useQRCode } from 'vue3-next-qrcode'
+import { QRCodeClient } from 'vue3-next-qrcode/client'
+import 'vue3-next-qrcode/style.css'
 
 // 动态导入组件（方法 4）
 const LazyQRCode = defineAsyncComponent(() =>
-  import('vue3-next-qrcode').then((m) => m.Vue3NextQrcode),
+  import('vue3-next-qrcode/client').then((m) => m.QRCodeClient),
 )
 
 const qrText = ref('https://github.com/XiaoDaiGua-Ray/vue3-next-qrcode')

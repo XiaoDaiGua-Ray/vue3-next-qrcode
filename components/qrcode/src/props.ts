@@ -188,7 +188,7 @@ const props = {
     /**
      *
      * Background image to be used in the QR code
-     * Accepts a `data:` string in web browsers or a Buffer in Node.js
+     * Accepts a `data:` string or URL in web browsers
      *
      * @default undefined
      */
@@ -237,7 +237,7 @@ const props = {
     /**
      *
      * Logo image to be displayed at the center of the QR code
-     * Accepts a `data:` string in web browsers or a Buffer in Node.js
+     * Accepts a `data:` string or URL in web browsers
      * When set to `undefined` or `null`, the logo is disabled
      *
      * @default undefined
@@ -290,7 +290,9 @@ const props = {
      * When the QR code is successfully generated, this callback is called
      */
     type: [Function, Array] as PropType<
-      MaybeArray<(dataURL: ArrayBuffer | string | undefined | Buffer) => void>
+      MaybeArray<
+        (dataURL: ArrayBuffer | Uint8Array | string | undefined) => void
+      >
     >,
     default: null,
   },

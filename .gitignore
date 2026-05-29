@@ -18,8 +18,8 @@ lib
 *.local
 
 # Development
-src
-public
+/src
+/public
 
 # Editor directories and files
 .vscode/*
