@@ -1,11 +1,14 @@
 import { default as QRCode, props } from './qrcode/index';
 import { App, ExtractPublicPropTypes } from 'vue';
-import { QRCodeInst, QRCodeLevel, QRCodeStatus, QRCodeComponentProps, QRCodeOptions } from './qrcode/src/types';
+import { QRCodeInst, QRCodeLevel, QRCodeStatus, QRCodeComponentProps, QRCodeOptions, ComponentOptions, QRCodeRenderResponse } from './qrcode/src/types';
 type QRCodeProps = ExtractPublicPropTypes<typeof props>;
-export type { QRCodeInst, QRCodeLevel, QRCodeStatus, QRCodeComponentProps, QRCodeOptions, QRCodeProps, };
+export type { QRCodeInst, QRCodeLevel, QRCodeStatus, QRCodeComponentProps, QRCodeOptions, ComponentOptions, QRCodeRenderResponse, QRCodeProps, };
 export { QRCode as Vue3NextQrcode, props as qrcodeProps };
 export { useQRCode } from './qrcode/src/useQRCode';
 export type { UseQRCodeOptions, UseQRCodeReturnType, } from './qrcode/src/useQRCode';
+export { useQRCodeDownload } from './qrcode/src/useQRCodeDownload';
+export type { QRCodeDownloadSource, UseQRCodeDownloadReturn, } from './qrcode/src/useQRCodeDownload';
+export { clearQRCodeGIFCache } from './qrcode/src/utils';
 export { QRCodeClient } from './qrcode/src/QRCodeClient';
 declare const _default: {
     install: (app: App) => void;
@@ -52,12 +55,14 @@ declare const _default: {
         };
         maskPattern: {
             type: NumberConstructor;
+            validator: (value: unknown) => boolean;
         };
         version: {
             type: NumberConstructor;
+            validator: (value: unknown) => boolean;
         };
         components: {
-            type: import('vue').PropType<import('./qrcode/core/awesome-qr').ComponentOptions>;
+            type: import('vue').PropType<ComponentOptions>;
             default: () => {
                 data: {
                     scale: number;
@@ -123,6 +128,7 @@ declare const _default: {
         dotScale: {
             type: NumberConstructor;
             default: number;
+            validator: (value: unknown) => boolean;
         };
         onSuccess: {
             type: import('vue').PropType<import('./qrcode/src/types').MaybeArray<(dataURL: ArrayBuffer | Uint8Array | string | undefined) => void>>;
@@ -137,7 +143,7 @@ declare const _default: {
             default: null;
         };
     }>, {
-        qrcodeURL: import('vue').Ref<import('./qrcode/src/types').QRCodeRenderResponse, import('./qrcode/src/types').QRCodeRenderResponse>;
+        qrcodeURL: import('vue').Ref<QRCodeRenderResponse, QRCodeRenderResponse>;
         cssVars: import('vue').ComputedRef<{
             '--r-qrcode-primary-color'?: string;
             '--r-qrcode-primary-color-2'?: string;
@@ -193,12 +199,14 @@ declare const _default: {
         };
         maskPattern: {
             type: NumberConstructor;
+            validator: (value: unknown) => boolean;
         };
         version: {
             type: NumberConstructor;
+            validator: (value: unknown) => boolean;
         };
         components: {
-            type: import('vue').PropType<import('./qrcode/core/awesome-qr').ComponentOptions>;
+            type: import('vue').PropType<ComponentOptions>;
             default: () => {
                 data: {
                     scale: number;
@@ -264,6 +272,7 @@ declare const _default: {
         dotScale: {
             type: NumberConstructor;
             default: number;
+            validator: (value: unknown) => boolean;
         };
         onSuccess: {
             type: import('vue').PropType<import('./qrcode/src/types').MaybeArray<(dataURL: ArrayBuffer | Uint8Array | string | undefined) => void>>;
@@ -281,7 +290,7 @@ declare const _default: {
         size: number;
         margin: number;
         correctLevel: QRCodeLevel;
-        components: import('./qrcode/core/awesome-qr').ComponentOptions;
+        components: QRCodeComponentProps;
         colorDark: string;
         colorLight: string;
         autoColor: boolean;

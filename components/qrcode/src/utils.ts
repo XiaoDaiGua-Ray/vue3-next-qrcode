@@ -27,7 +27,69 @@ export const downloadBase64File = (base64: string, fileName?: string): void => {
 }
 
 // GIF cache to avoid re-fetching the same GIF
+const MAX_GIF_CACHE_ENTRIES = 20
 const gifCache = new Map<string, ArrayBuffer>()
+const gifRequests = new Map<string, Promise<ArrayBuffer>>()
+let gifCacheVersion = 0
+
+const setGIFCache = (url: string, buffer: ArrayBuffer): void => {
+  if (gifCache.has(url)) {
+    gifCache.delete(url)
+  }
+
+  gifCache.set(url, buffer)
+
+  while (gifCache.size > MAX_GIF_CACHE_ENTRIES) {
+    const oldestKey = gifCache.keys().next().value
+
+    if (oldestKey === void 0) return
+
+    gifCache.delete(oldestKey)
+  }
+}
+
+const fetchGIFAsArrayBuffer = async (url: string): Promise<ArrayBuffer> => {
+  // Use fetch API if available (more modern and SSR-friendly)
+  if (typeof fetch !== 'undefined') {
+    try {
+      const response = await fetch(url)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      return await response.arrayBuffer()
+    } catch (error) {
+      throw new Error(`Failed to fetch GIF: ${error}`)
+    }
+  }
+
+  // Fallback to XMLHttpRequest
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+
+    xhr.responseType = 'blob'
+
+    xhr.onload = () => {
+      const reader = new FileReader()
+
+      reader.onloadend = () => {
+        if (reader.result instanceof ArrayBuffer) {
+          resolve(reader.result)
+        } else {
+          reject(new Error('Failed to read GIF as ArrayBuffer'))
+        }
+      }
+      reader.onerror = () => reject(new Error('FileReader error'))
+      reader.onabort = () => reject(new Error('FileReader aborted'))
+
+      reader.readAsArrayBuffer(xhr.response)
+    }
+
+    xhr.onerror = () => reject(new Error('Network error'))
+    xhr.open('GET', url)
+    xhr.send()
+  })
+}
 
 /**
  * Read GIF file as ArrayBuffer from URL with caching
@@ -48,54 +110,34 @@ export const readGIFAsArrayBuffer = async (
     return cached
   }
 
-  // Use fetch API if available (more modern and SSR-friendly)
-  if (typeof fetch !== 'undefined') {
-    try {
-      const response = await fetch(url)
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+  const pending = gifRequests.get(url)
+  if (pending) return pending
+
+  const requestVersion = gifCacheVersion
+  const request = fetchGIFAsArrayBuffer(url)
+    .then((buffer) => {
+      if (requestVersion === gifCacheVersion) {
+        setGIFCache(url, buffer)
       }
-      const buffer = await response.arrayBuffer()
-      gifCache.set(url, buffer)
+
       return buffer
-    } catch (error) {
-      throw new Error(`Failed to fetch GIF: ${error}`)
-    }
-  }
+    })
+    .finally(() => {
+      gifRequests.delete(url)
+    })
 
-  // Fallback to XMLHttpRequest
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest()
+  gifRequests.set(url, request)
 
-    xhr.responseType = 'blob'
-
-    xhr.onload = () => {
-      const reader = new FileReader()
-
-      reader.onloadend = () => {
-        if (reader.result instanceof ArrayBuffer) {
-          // Cache the result
-          gifCache.set(url, reader.result)
-          resolve(reader.result)
-        } else {
-          reject(new Error('Failed to read GIF as ArrayBuffer'))
-        }
-      }
-      reader.onerror = () => reject(new Error('FileReader error'))
-      reader.onabort = () => reject(new Error('FileReader aborted'))
-
-      reader.readAsArrayBuffer(xhr.response)
-    }
-
-    xhr.onerror = () => reject(new Error('Network error'))
-    xhr.open('GET', url)
-    xhr.send()
-  })
+  return request
 }
 
 /**
  * Clear GIF cache
  */
 export const clearGIFCache = (): void => {
+  gifCacheVersion++
   gifCache.clear()
+  gifRequests.clear()
 }
+
+export const clearQRCodeGIFCache = clearGIFCache

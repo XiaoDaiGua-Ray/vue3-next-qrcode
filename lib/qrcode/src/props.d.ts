@@ -1,6 +1,5 @@
-import { MaybeArray, QRCodeStatus, QRCodeLevel, DefineProvider } from './types';
+import { MaybeArray, QRCodeStatus, QRCodeLevel, DefineProvider, ComponentOptions } from './types';
 import { PropType, VNode } from 'vue';
-import { ComponentOptions } from '../core/awesome-qr';
 declare const props: {
     defineProvider: {
         /**
@@ -110,6 +109,7 @@ declare const props: {
          * Accepts a value provided by _QRMaskPattern_
          */
         type: NumberConstructor;
+        validator: (value: unknown) => boolean;
     };
     version: {
         /**
@@ -118,6 +118,7 @@ declare const props: {
          * Accepts an integer in range [1, 40]
          */
         type: NumberConstructor;
+        validator: (value: unknown) => boolean;
     };
     components: {
         /**
@@ -276,6 +277,7 @@ declare const props: {
          */
         type: NumberConstructor;
         default: number;
+        validator: (value: unknown) => boolean;
     };
     onSuccess: {
         /**

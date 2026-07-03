@@ -8,7 +8,7 @@ const external = (id: string): boolean =>
 
 export default defineConfig({
   define: {
-    __VUE3_NEXT_QRCODE_ENABLE_WORKER__: 'true',
+    __VUE3_NEXT_QRCODE_ENABLE_WORKER__: 'false',
   },
   plugins: [
     vue(),

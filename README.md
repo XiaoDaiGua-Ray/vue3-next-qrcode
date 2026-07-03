@@ -32,7 +32,7 @@ Vue 3 QR code component with logo, image/GIF background, status UI, `useQRCode`,
 - Supports logo, image background, GIF background, custom dots, error/loading states, and download.
 - Root imports are SSR-safe for Nuxt and other SSR frameworks.
 - Heavy rendering code is lazy-loaded. GIF parser/encoder only load when GIF rendering is used.
-- GIF rendering tries a Worker first and falls back to the main thread automatically.
+- GIF rendering is guarded and lazy-loaded; packaged builds currently use the verified main-thread renderer.
 - Written in TypeScript with component, composable, and instance types.
 
 ## Install
@@ -48,7 +48,11 @@ npm install vue3-next-qrcode
 For the current beta release:
 
 ```bash
-pnpm add vue3-next-qrcode@beta
+pnpm add vue3-next-qrcode@4.1.0-beta.1
+```
+
+```bash
+npm install vue3-next-qrcode@4.1.0-beta.1
 ```
 
 ## Quick Start
@@ -119,7 +123,7 @@ const gifUrl = 'https://example.com/background.gif'
 </template>
 ```
 
-GIF parser, encoder, and Worker code are not loaded by normal QR codes. They are pulled in only when `gifBackgroundURL` or `gifBackground` is used.
+GIF parser and encoder code are not loaded by normal QR codes. They are pulled in only when `gifBackgroundURL` or `gifBackground` is used.
 
 ### Loading And Error States
 
@@ -248,15 +252,26 @@ function useQRCode(): {
   qrcodeURL: Ref<string | ArrayBuffer | Uint8Array | undefined>
   isLoading: Ref<boolean>
   error: Ref<Error | null>
-  generate: (options: UseQRCodeOptions) => Promise<string | ArrayBuffer | Uint8Array | undefined>
+  generate: (
+    options: UseQRCodeOptions,
+  ) => Promise<string | ArrayBuffer | Uint8Array | undefined>
+  canDownload: ComputedRef<boolean>
+  download: (fileName?: string) => Promise<void>
   clear: () => void
 }
 ```
 
+`useQRCodeDownload(sourceRef)` is also exported when you only need reusable download behavior for an existing QR result ref. Use `clearQRCodeGIFCache()` to clear the shared GIF URL cache.
+
 ## Package Exports
 
 ```ts
-import { Vue3NextQrcode, useQRCode } from 'vue3-next-qrcode'
+import {
+  Vue3NextQrcode,
+  useQRCode,
+  useQRCodeDownload,
+  clearQRCodeGIFCache,
+} from 'vue3-next-qrcode'
 import { QRCodeClient } from 'vue3-next-qrcode/client'
 import 'vue3-next-qrcode/style.css'
 ```
@@ -270,45 +285,45 @@ import 'vue3-next-qrcode/lib/style.css'
 
 ## Props
 
-| Prop | Type | Default | Description |
-| --- | --- | --- | --- |
-| `text` | `string` | required | Text encoded into the QR code. |
-| `size` | `number` | `160` | QR code size in pixels. |
-| `margin` | `number` | `12` | Quiet-zone margin around the QR body. |
-| `correctLevel` | `0 \| 1 \| 2 \| 3` | `1` | Error correction level: L, M, Q, H. |
-| `watchText` | `boolean` | `true` | Re-render when `text` changes. |
-| `status` | `'loading' \| 'error' \| 'success'` | `undefined` | Display loading or error UI instead of the normal QR image. |
-| `colorDark` | `string` | `'#000000'` | QR module color. |
-| `colorLight` | `string` | `'#ffffff'` | QR background color. |
-| `autoColor` | `boolean` | `true` | Derive dark color from image/GIF background when possible. |
-| `backgroundImage` | `string` | `undefined` | Static background image URL or data URL. |
-| `backgroundDimming` | `string` | `'rgba(0, 0, 0, 0)'` | Overlay color above the background image. |
-| `gifBackgroundURL` | `string` | `undefined` | GIF background URL. |
-| `gifBackground` | `ArrayBuffer` | `undefined` | GIF background binary data. |
-| `logoImage` | `string` | `undefined` | Center logo image URL or data URL. |
-| `logoScale` | `number` | `0.4` | Logo size ratio relative to QR size. |
-| `logoMargin` | `number` | `6` | Logo margin in pixels. |
-| `logoCornerRadius` | `number` | `8` | Logo corner radius in pixels. |
-| `dotScale` | `number` | `1` | Dot size ratio. Lower values reveal more background. |
-| `whiteMargin` | `boolean` | `true` | Use white quiet-zone margin instead of transparent margin. |
-| `components` | `ComponentOptions` | built-in defaults | Fine-grained QR component styling. |
-| `maskPattern` | `number` | `undefined` | Force a QR mask pattern. Usually leave unset. |
-| `version` | `number` | `undefined` | Force QR version from `1` to `40`. Usually leave unset. |
-| `defineProvider` | `Partial<DefineProvider>` | `undefined` | CSS variable overrides for this component. |
-| `maskColor` | `string` | `'rgba(255, 255, 255, 0.96)'` | Loading/error mask color. |
-| `errorDescription` | `string \| VNode` | `'二维码已过期'` | Error-state description. |
-| `errorActionDescription` | `string` | `'重新加载'` | Error action text. |
-| `onSuccess` | `(result) => void` or array | `null` | Called after successful generation. Result is `string \| ArrayBuffer \| Uint8Array \| undefined`. |
-| `onError` | `(error) => void` or array | `null` | Called when generation fails. |
-| `onReload` | `() => void` or array | `null` | Called by the built-in error action. |
+| Prop                     | Type                                | Default                       | Description                                                                                       |
+| ------------------------ | ----------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------- |
+| `text`                   | `string`                            | required                      | Text encoded into the QR code.                                                                    |
+| `size`                   | `number`                            | `160`                         | QR code size in pixels.                                                                           |
+| `margin`                 | `number`                            | `12`                          | Quiet-zone margin around the QR body.                                                             |
+| `correctLevel`           | `0 \| 1 \| 2 \| 3`                  | `1`                           | Error correction level: L, M, Q, H.                                                               |
+| `watchText`              | `boolean`                           | `true`                        | Re-render when `text` changes.                                                                    |
+| `status`                 | `'loading' \| 'error' \| 'success'` | `undefined`                   | Display loading or error UI instead of the normal QR image.                                       |
+| `colorDark`              | `string`                            | `'#000000'`                   | QR module color.                                                                                  |
+| `colorLight`             | `string`                            | `'#ffffff'`                   | QR background color.                                                                              |
+| `autoColor`              | `boolean`                           | `true`                        | Derive dark color from image/GIF background when possible.                                        |
+| `backgroundImage`        | `string`                            | `undefined`                   | Static background image URL or data URL.                                                          |
+| `backgroundDimming`      | `string`                            | `'rgba(0, 0, 0, 0)'`          | Overlay color above the background image.                                                         |
+| `gifBackgroundURL`       | `string`                            | `undefined`                   | GIF background URL.                                                                               |
+| `gifBackground`          | `ArrayBuffer`                       | `undefined`                   | GIF background binary data.                                                                       |
+| `logoImage`              | `string`                            | `undefined`                   | Center logo image URL or data URL.                                                                |
+| `logoScale`              | `number`                            | `0.4`                         | Logo size ratio relative to QR size.                                                              |
+| `logoMargin`             | `number`                            | `6`                           | Logo margin in pixels.                                                                            |
+| `logoCornerRadius`       | `number`                            | `8`                           | Logo corner radius in pixels.                                                                     |
+| `dotScale`               | `number`                            | `1`                           | Dot size ratio in `(0, 1]`. Lower values reveal more background.                                  |
+| `whiteMargin`            | `boolean`                           | `true`                        | Use white quiet-zone margin instead of transparent margin.                                        |
+| `components`             | `ComponentOptions`                  | built-in defaults             | Fine-grained QR component styling.                                                                |
+| `maskPattern`            | `number`                            | `undefined`                   | Force a QR mask pattern from `0` to `7`. Usually leave unset.                                     |
+| `version`                | `number`                            | `undefined`                   | Force QR version from `1` to `40`. Usually leave unset.                                           |
+| `defineProvider`         | `Partial<DefineProvider>`           | `undefined`                   | CSS variable overrides for this component.                                                        |
+| `maskColor`              | `string`                            | `'rgba(255, 255, 255, 0.96)'` | Loading/error mask color.                                                                         |
+| `errorDescription`       | `string \| VNode`                   | `'二维码已过期'`              | Error-state description.                                                                          |
+| `errorActionDescription` | `string`                            | `'重新加载'`                  | Error action text.                                                                                |
+| `onSuccess`              | `(result) => void` or array         | `null`                        | Called after successful generation. Result is `string \| ArrayBuffer \| Uint8Array \| undefined`. |
+| `onError`                | `(error) => void` or array          | `null`                        | Called when generation fails.                                                                     |
+| `onReload`               | `() => void` or array               | `null`                        | Called by the built-in error action.                                                              |
 
 In SFC templates you can use either camelCase (`gifBackgroundURL`) or kebab-case (`gif-background-url`) depending on your Vue setup.
 
 ## Slots And Instance
 
-| Slot | Description |
-| --- | --- |
-| `loading` | Custom loading UI. |
+| Slot          | Description             |
+| ------------- | ----------------------- |
+| `loading`     | Custom loading UI.      |
 | `errorAction` | Custom error action UI. |
 
 ```ts
@@ -351,9 +366,25 @@ import type {
   QRCodeStatus,
   QRCodeProps,
   QRCodeOptions,
+  ComponentOptions,
   UseQRCodeOptions,
   UseQRCodeReturnType,
+  QRCodeDownloadSource,
+  UseQRCodeDownloadReturn,
 } from 'vue3-next-qrcode'
+```
+
+## Testing
+
+The beta package is covered by both unit tests and release smoke tests:
+
+- `vitest` + `happy-dom` cover prop validators, GIF URL cache/deduplication, download behavior, render queue semantics, `useQRCode`, `QRCode` component async rendering, and the packaged main-thread renderer path.
+- `scripts/smoke.mjs` verifies ESM/CJS root imports, client subpath imports, style exports, package file presence, declaration consumption, stale private path references, disabled packaged worker references, and emoji QR encoding.
+
+Run everything with:
+
+```bash
+pnpm run test
 ```
 
 ## Migration Notes
@@ -383,7 +414,7 @@ Yes. The root entry and `useQRCode` are SSR-safe to import. Render QR images onl
 
 ### Does GIF rendering need configuration?
 
-No. The package tries Worker rendering internally and falls back to main-thread rendering automatically.
+No. Packaged builds use the verified main-thread GIF renderer. Worker rendering is disabled until relative worker URLs pass package smoke tests across ESM and CJS builds.
 
 ### Can I use it in a mini program?
 

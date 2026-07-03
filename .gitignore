@@ -9,12 +9,14 @@ lerna-debug.log*
 
 # Dependencies
 node_modules
+.pnpm-store
 
 # Build outputs
 dist
 dist-ssr
 es
 lib
+tsconfig.tsbuildinfo
 *.local
 
 # Development

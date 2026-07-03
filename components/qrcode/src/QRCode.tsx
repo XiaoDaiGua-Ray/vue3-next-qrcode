@@ -3,7 +3,9 @@ import './index.scss'
 import props from './props'
 import { call } from './call'
 import { renderQRCode as renderQRCodeImage } from './renderer'
-import { downloadBase64File, readGIFAsArrayBuffer } from './utils'
+import { useGifBackground } from './useGifBackground'
+import { useQRCodeDownload } from './useQRCodeDownload'
+import { useQRCodeRenderQueue } from './useQRCodeRenderQueue'
 import {
   ref,
   onMounted,
@@ -11,7 +13,6 @@ import {
   computed,
   watch,
   onBeforeUnmount,
-  shallowRef,
 } from 'vue'
 
 import type { QRCodeBaseOptions, QRCodeRenderResponse } from './types'
@@ -24,11 +25,10 @@ export default defineComponent({
 
     // State
     const qrcodeURL = ref<QRCodeRenderResponse>()
-    const gifBuffer = shallowRef<ArrayBuffer | null>(null)
     const isClick = ref(false)
-    const isRendering = ref(false)
-    const needsRerender = ref(false)
-    let renderRequestId = 0
+    const gifBackground = useGifBackground()
+    const renderQueue = useQRCodeRenderQueue<QRCodeRenderResponse>()
+    const { download } = useQRCodeDownload(qrcodeURL)
 
     // Computed
     const cssVars = computed(() => {
@@ -52,77 +52,57 @@ export default defineComponent({
     })
 
     // Methods
-    const loadGIFFromURL = async (url: string): Promise<void> => {
-      try {
-        gifBuffer.value = await readGIFAsArrayBuffer(url)
-      } catch (error) {
-        console.error('Failed to load GIF background:', error)
-
-        gifBuffer.value = null
-
-        throw error
-      }
-    }
-
     const renderQRCode = async (): Promise<void> => {
-      const requestId = ++renderRequestId
+      await renderQueue.runLatest(
+        async () => {
+          const {
+            gifBackgroundURL,
+            gifBackground: gifBackgroundProp,
+            onSuccess: _onSuccess,
+            onError: _onError,
+            defineProvider: _defineProvider,
+            maskColor: _maskColor,
+            watchText: _watchText,
+            status: _status,
+            errorDescription: _errorDescription,
+            errorActionDescription: _errorActionDescription,
+            onReload: _onReload,
+            ...ops
+          } = props
 
-      if (isRendering.value) {
-        needsRerender.value = true
-        return
-      }
+          let gifBackgroundBuffer: ArrayBuffer | undefined
 
-      isRendering.value = true
-      needsRerender.value = false
+          if (gifBackgroundURL) {
+            gifBackgroundBuffer =
+              gifBackground.getBuffer(gifBackgroundURL) ??
+              (await gifBackground.load(gifBackgroundURL))
+          } else {
+            gifBackgroundBuffer = gifBackgroundProp || undefined
+          }
 
-      try {
-        const {
-          gifBackgroundURL,
-          gifBackground,
-          onSuccess,
-          onError: _onError,
-          defineProvider: _defineProvider,
-          maskColor: _maskColor,
-          watchText: _watchText,
-          status: _status,
-          errorDescription: _errorDescription,
-          errorActionDescription: _errorActionDescription,
-          onReload: _onReload,
-          ...ops
-        } = props
+          const renderOptions: QRCodeBaseOptions = {
+            ...ops,
+            text: props.text ?? '',
+            gifBackground: gifBackgroundBuffer,
+          }
 
-        // Load GIF if needed
-        if (gifBackgroundURL && !gifBuffer.value) {
-          await loadGIFFromURL(gifBackgroundURL)
-        }
+          return renderQRCodeImage(renderOptions)
+        },
+        {
+          onSuccess(result) {
+            qrcodeURL.value = result
 
-        const renderOptions: QRCodeBaseOptions = {
-          ...ops,
-          text: props.text ?? '',
-          gifBackground: gifBuffer.value || gifBackground || undefined,
-        }
-        const result = await renderQRCodeImage(renderOptions)
-
-        if (requestId !== renderRequestId) return
-
-        qrcodeURL.value = result
-
-        if (onSuccess) {
-          call(onSuccess, result)
-        }
-      } catch (error) {
-        const { onError } = props
-
-        if (onError) {
-          call(onError, error)
-        }
-      } finally {
-        isRendering.value = false
-
-        if (needsRerender.value) {
-          renderQRCode()
-        }
-      }
+            if (props.onSuccess) {
+              call(props.onSuccess, result)
+            }
+          },
+          onError(error) {
+            if (props.onError) {
+              call(props.onError, error)
+            }
+          },
+        },
+      )
     }
 
     const handleErrorAction = (): void => {
@@ -136,11 +116,7 @@ export default defineComponent({
     }
 
     const downloadQRCode = async (fileName?: string): Promise<void> => {
-      if (!qrcodeURL.value || typeof qrcodeURL.value !== 'string') {
-        throw new Error('QR code not available for download')
-      }
-
-      downloadBase64File(qrcodeURL.value, fileName)
+      await download(fileName)
     }
 
     // Watchers
@@ -172,12 +148,11 @@ export default defineComponent({
 
     const stopGifWatch = watch(
       () => props.gifBackgroundURL,
-      async (newUrl) => {
-        if (newUrl) {
-          await loadGIFFromURL(newUrl)
-        } else {
-          gifBuffer.value = null
+      (newUrl) => {
+        if (!newUrl) {
+          gifBackground.clear()
         }
+
         renderQRCode()
       },
     )
@@ -190,6 +165,8 @@ export default defineComponent({
     onBeforeUnmount(() => {
       stopOptionsWatch()
       stopGifWatch()
+      renderQueue.dispose()
+      gifBackground.dispose()
     })
 
     // Expose

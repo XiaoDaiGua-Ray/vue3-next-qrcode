@@ -1,6 +1,8 @@
-import { ref, shallowRef } from 'vue'
+import { ref } from 'vue'
 import { renderQRCode } from './renderer'
-import { readGIFAsArrayBuffer } from './utils'
+import { useGifBackground } from './useGifBackground'
+import { useQRCodeDownload } from './useQRCodeDownload'
+import { useQRCodeRenderQueue } from './useQRCodeRenderQueue'
 
 import type { QRCodeRenderResponse, QRCodeBaseOptions } from './types'
 
@@ -35,20 +37,11 @@ export interface UseQRCodeOptions extends Partial<QRCodeBaseOptions> {
  */
 export function useQRCode() {
   const qrcodeURL = ref<QRCodeRenderResponse>()
-  const isLoading = ref(false)
   const error = ref<Error | null>(null)
-  const gifBuffer = shallowRef<ArrayBuffer | null>(null)
-
-  const loadGIFFromURL = async (url: string): Promise<ArrayBuffer> => {
-    try {
-      const buffer = await readGIFAsArrayBuffer(url)
-      gifBuffer.value = buffer
-      return buffer
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err : new Error(String(err))
-      throw new Error(`Failed to load GIF from URL: ${errorMsg.message}`)
-    }
-  }
+  const gifBackground = useGifBackground()
+  const renderQueue = useQRCodeRenderQueue<QRCodeRenderResponse>()
+  const { canDownload, download } = useQRCodeDownload(qrcodeURL)
+  const isLoading = renderQueue.isRendering
 
   const generate = async (
     options: UseQRCodeOptions,
@@ -61,39 +54,34 @@ export function useQRCode() {
       throw new Error('Text is required for QR code generation')
     }
 
-    isLoading.value = true
     error.value = null
 
     try {
-      const { gifBackgroundURL, ...qrOptions } = options
+      const result = await renderQueue.runExclusive(async () => {
+        const {
+          gifBackgroundURL,
+          gifBackground: gifBackgroundOption,
+          ...qrOptions
+        } = options
 
-      // Load GIF if URL is provided
-      let gifBackground: ArrayBuffer | undefined
+        let gifBackgroundBuffer = gifBackgroundOption
 
-      if (gifBackgroundURL) {
-        gifBackground = await loadGIFFromURL(gifBackgroundURL)
-      }
-
-      // Clean options: remove undefined values
-      const cleanOptions: Record<string, any> = {}
-
-      Object.keys(qrOptions).forEach((key) => {
-        const value = (qrOptions as UseQRCodeOptions)[
-          key as keyof UseQRCodeOptions
-        ]
-
-        if (value !== void 0) {
-          cleanOptions[key] = value
+        if (gifBackgroundURL) {
+          gifBackgroundBuffer =
+            gifBackground.getBuffer(gifBackgroundURL) ??
+            (await gifBackground.load(gifBackgroundURL))
         }
+
+        const cleanOptions: Partial<QRCodeBaseOptions> = Object.fromEntries(
+          Object.entries(qrOptions).filter(([, value]) => value !== void 0),
+        )
+
+        if (gifBackgroundBuffer) {
+          cleanOptions.gifBackground = gifBackgroundBuffer
+        }
+
+        return renderQRCode(cleanOptions as QRCodeBaseOptions)
       })
-
-      // Add gifBackground if available
-      if (gifBackground) {
-        cleanOptions.gifBackground = gifBackground
-      }
-
-      // Generate QR code
-      const result = await renderQRCode(cleanOptions as QRCodeBaseOptions)
 
       qrcodeURL.value = result
       return result
@@ -101,15 +89,13 @@ export function useQRCode() {
       const errorObj = err instanceof Error ? err : new Error(String(err))
       error.value = errorObj
       throw errorObj
-    } finally {
-      isLoading.value = false
     }
   }
 
   const clear = (): void => {
     qrcodeURL.value = void 0
     error.value = null
-    gifBuffer.value = null
+    gifBackground.clear()
   }
 
   return {
@@ -117,6 +103,8 @@ export function useQRCode() {
     isLoading,
     error,
     generate,
+    canDownload,
+    download,
     clear,
   } as const
 }

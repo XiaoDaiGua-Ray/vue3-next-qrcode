@@ -1,5 +1,3 @@
-import type { ComponentOptions, Options } from '../core/awesome-qr'
-
 export type QRCodeStatus = 'error' | 'success' | 'loading'
 
 export type QRCodeLevel = 0 | 1 | 2 | 3
@@ -13,17 +11,44 @@ export type QRCodeInst = {
    *
    * 如果未设置名称，则默认以 时间戳.png 命名
    */
-  downloadQRCode: (fileName?: string) => void
+  downloadQRCode: (fileName?: string) => Promise<void>
 }
 
 export type MaybeArray<T> = T | T[]
 
-export type AnyFC = (...args: any[]) => any
+export type AnyFC = (...args: unknown[]) => unknown
 
-export type QRCodeComponentProps = ComponentOptions
+export type QRCodePartOptions = {
+  /**
+   * Scale factor for the QR code part.
+   */
+  scale?: number
+  /**
+   * Draw a protective background around the QR code part.
+   */
+  protectors?: boolean
+}
 
-// Re-export Options type from awesome-qr
-export type QRCodeOptions = Options
+export type QRCodeComponentProps = {
+  /**
+   * Component options for data/ECC dots.
+   */
+  data?: Pick<QRCodePartOptions, 'scale'>
+  /**
+   * Component options for timing patterns.
+   */
+  timing?: QRCodePartOptions
+  /**
+   * Component options for alignment patterns.
+   */
+  alignment?: QRCodePartOptions
+  /**
+   * Component options for alignment pattern on the bottom-right corner.
+   */
+  cornerAlignment?: QRCodePartOptions
+}
+
+export type ComponentOptions = QRCodeComponentProps
 
 // Ensure text is required in the base options
 export interface QRCodeBaseOptions {
@@ -33,7 +58,7 @@ export interface QRCodeBaseOptions {
   correctLevel?: number
   maskPattern?: number
   version?: number
-  components?: ComponentOptions
+  components?: QRCodeComponentProps
   colorDark?: string
   colorLight?: string
   autoColor?: boolean
@@ -46,6 +71,11 @@ export interface QRCodeBaseOptions {
   logoMargin?: number
   logoCornerRadius?: number
   dotScale?: number
+}
+
+export interface QRCodeOptions extends QRCodeBaseOptions {
+  logoBackgroundColor?: string
+  backgroundColor?: string
 }
 
 export interface DefineProvider {

@@ -42,12 +42,14 @@ declare const _default: import('vue').DefineComponent<import('vue').ExtractPropT
     };
     maskPattern: {
         type: NumberConstructor;
+        validator: (value: unknown) => boolean;
     };
     version: {
         type: NumberConstructor;
+        validator: (value: unknown) => boolean;
     };
     components: {
-        type: import('vue').PropType<import('../core/awesome-qr').ComponentOptions>;
+        type: import('vue').PropType<import('./types').ComponentOptions>;
         default: () => {
             data: {
                 scale: number;
@@ -113,6 +115,7 @@ declare const _default: import('vue').DefineComponent<import('vue').ExtractPropT
     dotScale: {
         type: NumberConstructor;
         default: number;
+        validator: (value: unknown) => boolean;
     };
     onSuccess: {
         type: import('vue').PropType<import('./types').MaybeArray<(dataURL: ArrayBuffer | Uint8Array | string | undefined) => void>>;
@@ -183,12 +186,14 @@ declare const _default: import('vue').DefineComponent<import('vue').ExtractPropT
     };
     maskPattern: {
         type: NumberConstructor;
+        validator: (value: unknown) => boolean;
     };
     version: {
         type: NumberConstructor;
+        validator: (value: unknown) => boolean;
     };
     components: {
-        type: import('vue').PropType<import('../core/awesome-qr').ComponentOptions>;
+        type: import('vue').PropType<import('./types').ComponentOptions>;
         default: () => {
             data: {
                 scale: number;
@@ -254,6 +259,7 @@ declare const _default: import('vue').DefineComponent<import('vue').ExtractPropT
     dotScale: {
         type: NumberConstructor;
         default: number;
+        validator: (value: unknown) => boolean;
     };
     onSuccess: {
         type: import('vue').PropType<import('./types').MaybeArray<(dataURL: ArrayBuffer | Uint8Array | string | undefined) => void>>;
@@ -271,7 +277,7 @@ declare const _default: import('vue').DefineComponent<import('vue').ExtractPropT
     size: number;
     margin: number;
     correctLevel: import('./types').QRCodeLevel;
-    components: import('../core/awesome-qr').ComponentOptions;
+    components: import('./types').QRCodeComponentProps;
     colorDark: string;
     colorLight: string;
     autoColor: boolean;

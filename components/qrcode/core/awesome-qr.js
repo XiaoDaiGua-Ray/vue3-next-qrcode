@@ -2,6 +2,12 @@ import { Canvas, isCanvasElement } from './canvas.js'
 import { QRCodeModel, QRErrorCorrectLevel, QRUtil } from './qrcode'
 
 const defaultScale = 0.4
+const DEFAULT_GIF_FRAME_DELAY = 100
+const GIF_BACKGROUND_COLOR = '#ffffff'
+const MAX_GIF_FRAMES = 300
+const MAX_GIF_DIMENSION = 2048
+const MAX_GIF_TOTAL_PIXELS = 100 * 1024 * 1024
+
 async function loadImage(url) {
   if (!url) return undefined
 
@@ -74,7 +80,7 @@ export class AwesomeQR {
       _options.components.alignment.scale = _options.dotScale
     }
     this.options = _options
-    this.canvas = new Canvas(options.size, options.size)
+    this.canvas = new Canvas(_options.size, _options.size)
     this.canvasContext = this.canvas.getContext('2d')
     this.qrCode = new QRCodeModel(-1, this.options.correctLevel)
     if (Number.isInteger(this.options.maskPattern)) {
@@ -90,10 +96,92 @@ export class AwesomeQR {
     this._cache = new Map()
   }
   draw() {
-    return new Promise((resolve) => this._draw().then(resolve))
+    return this._draw()
   }
   _clear() {
     this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height)
+  }
+  static _getGIFCanvasSize(parsedGIF, gifFrames) {
+    let width = Number(parsedGIF?.lsd?.width) || 0
+    let height = Number(parsedGIF?.lsd?.height) || 0
+
+    gifFrames.forEach((frame) => {
+      const dims = frame?.dims
+
+      if (!dims) return
+
+      width = Math.max(width, dims.left + dims.width)
+      height = Math.max(height, dims.top + dims.height)
+    })
+
+    return { width, height }
+  }
+  static _assertGIFFrames(parsedGIF, gifFrames) {
+    if (!Array.isArray(gifFrames) || gifFrames.length === 0) {
+      throw new Error('GIF background must contain at least one frame.')
+    }
+
+    if (gifFrames.length > MAX_GIF_FRAMES) {
+      throw new Error(
+        `GIF background frame count ${gifFrames.length} exceeds the maximum ${MAX_GIF_FRAMES}.`,
+      )
+    }
+
+    const gifSize = AwesomeQR._getGIFCanvasSize(parsedGIF, gifFrames)
+    const { width, height } = gifSize
+
+    if (!width || !height) {
+      throw new Error('GIF background has invalid dimensions.')
+    }
+
+    if (width > MAX_GIF_DIMENSION || height > MAX_GIF_DIMENSION) {
+      throw new Error(
+        `GIF background dimensions ${width}x${height} exceed the maximum ${MAX_GIF_DIMENSION}x${MAX_GIF_DIMENSION}.`,
+      )
+    }
+
+    const totalPixels = width * height * gifFrames.length
+
+    if (totalPixels > MAX_GIF_TOTAL_PIXELS) {
+      throw new Error(
+        `GIF background total frame pixels ${totalPixels} exceed the maximum ${MAX_GIF_TOTAL_PIXELS}.`,
+      )
+    }
+
+    gifFrames.forEach((frame, index) => {
+      const dims = frame?.dims
+
+      if (
+        !dims ||
+        dims.width <= 0 ||
+        dims.height <= 0 ||
+        dims.left < 0 ||
+        dims.top < 0
+      ) {
+        throw new Error(`GIF background frame ${index} has invalid dimensions.`)
+      }
+
+      if (dims.left + dims.width > width || dims.top + dims.height > height) {
+        throw new Error(`GIF background frame ${index} exceeds GIF bounds.`)
+      }
+
+      const expectedPatchLength = dims.width * dims.height * 4
+
+      if (!frame.patch || frame.patch.length !== expectedPatchLength) {
+        throw new Error(`GIF background frame ${index} has invalid pixel data.`)
+      }
+    })
+
+    return gifSize
+  }
+  static _normalizeGIFFrameDelay(delay) {
+    const numericDelay = Number(delay)
+
+    if (!Number.isFinite(numericDelay) || numericDelay <= 0) {
+      return DEFAULT_GIF_FRAME_DELAY
+    }
+
+    return numericDelay
   }
   static _prepareRoundedCornerClip(canvasContext, x, y, w, h, r) {
     canvasContext.beginPath()
@@ -284,13 +372,17 @@ export class AwesomeQR {
       const gif = parseGIF(this.options.gifBackground)
       parsedGIFBackground = gif
       gifFrames = decompressFrames(gif, true)
+      AwesomeQR._assertGIFFrames(parsedGIFBackground, gifFrames)
+
       if (this.options.autoColor) {
         let r = 0,
           g = 0,
           b = 0
         let count = 0
-        for (let i = 0; i < gifFrames[0].colorTable.length; i++) {
-          const c = gifFrames[0].colorTable[i]
+        const colorTable = gifFrames[0].colorTable || []
+
+        for (let i = 0; i < colorTable.length; i++) {
+          const c = colorTable[i]
           if (c[0] > 200 || c[1] > 200 || c[2] > 200) continue
           if (c[0] === 0 && c[1] === 0 && c[2] === 0) continue
           count++
@@ -669,32 +761,68 @@ export class AwesomeQR {
       mainCanvasContext.translate(margin, margin)
     }
     if (!!parsedGIFBackground) {
-      let gifOutput
+      const gifSize = AwesomeQR._getGIFCanvasSize(parsedGIFBackground, gifFrames)
+      const gifOutput = new GIFEncoder(rawSize, rawSize)
+
+      gifOutput.setRepeat(0)
+
       // Reuse in order to apply the patch
-      let backgroundCanvas
-      let backgroundCanvasContext
+      const backgroundFrameCanvas = new Canvas(gifSize.width, gifSize.height)
+      const backgroundFrameCanvasContext =
+        backgroundFrameCanvas.getContext('2d')
+      const unscaledCanvas = new Canvas(size, size)
+      const unscaledCanvasContext = unscaledCanvas.getContext('2d')
+      const outCanvas = new Canvas(rawSize, rawSize)
+      const outCanvasContext = outCanvas.getContext('2d')
       let patchCanvas
       let patchCanvasContext
       let patchData
+      let previousFrame
+      let previousFrameRestoreData
+
+      backgroundFrameCanvasContext.fillStyle = GIF_BACKGROUND_COLOR
+      backgroundFrameCanvasContext.fillRect(
+        0,
+        0,
+        backgroundFrameCanvas.width,
+        backgroundFrameCanvas.height,
+      )
+
       for (const frame of gifFrames) {
-        if (!gifOutput) {
-          gifOutput = new GIFEncoder(rawSize, rawSize)
-          gifOutput.setDelay(frame.delay)
-          gifOutput.setRepeat(0)
+        if (previousFrame) {
+          if (previousFrame.disposalType === 2) {
+            backgroundFrameCanvasContext.fillStyle = GIF_BACKGROUND_COLOR
+            backgroundFrameCanvasContext.fillRect(
+              previousFrame.dims.left,
+              previousFrame.dims.top,
+              previousFrame.dims.width,
+              previousFrame.dims.height,
+            )
+          } else if (
+            previousFrame.disposalType === 3 &&
+            previousFrameRestoreData
+          ) {
+            backgroundFrameCanvasContext.putImageData(
+              previousFrameRestoreData,
+              previousFrame.dims.left,
+              previousFrame.dims.top,
+            )
+          }
+
+          previousFrameRestoreData = undefined
         }
-        const { width, height } = frame.dims
-        if (!backgroundCanvas) {
-          backgroundCanvas = new Canvas(width, height)
-          backgroundCanvasContext = backgroundCanvas.getContext('2d')
-          backgroundCanvasContext.rect(
-            0,
-            0,
-            backgroundCanvas.width,
-            backgroundCanvas.height,
+
+        if (frame.disposalType === 3) {
+          previousFrameRestoreData = backgroundFrameCanvasContext.getImageData(
+            frame.dims.left,
+            frame.dims.top,
+            frame.dims.width,
+            frame.dims.height,
           )
-          backgroundCanvasContext.fillStyle = '#ffffff'
-          backgroundCanvasContext.fill()
         }
+
+        const { width, height } = frame.dims
+
         if (
           !patchCanvas ||
           !patchData ||
@@ -707,23 +835,22 @@ export class AwesomeQR {
         }
         patchData.data.set(frame.patch)
         patchCanvasContext.putImageData(patchData, 0, 0)
-        backgroundCanvasContext.drawImage(
+        backgroundFrameCanvasContext.drawImage(
           patchCanvas.getContext('2d').canvas,
           frame.dims.left,
           frame.dims.top,
         )
-        const unscaledCanvas = new Canvas(size, size)
-        const unscaledCanvasContext = unscaledCanvas.getContext('2d')
+
+        unscaledCanvasContext.clearRect(0, 0, size, size)
         unscaledCanvasContext.drawImage(
-          backgroundCanvas.getContext('2d').canvas,
+          backgroundFrameCanvas,
           0,
           0,
           size,
           size,
         )
-        unscaledCanvasContext.rect(0, 0, size, size)
         unscaledCanvasContext.fillStyle = backgroundDimming
-        unscaledCanvasContext.fill()
+        unscaledCanvasContext.fillRect(0, 0, size, size)
         unscaledCanvasContext.drawImage(
           mainCanvas.getContext('2d').canvas,
           0,
@@ -732,23 +859,24 @@ export class AwesomeQR {
           size,
         )
         // Scale the final image
-        const outCanvas = new Canvas(rawSize, rawSize)
-        const outCanvasContext = outCanvas.getContext('2d')
+        outCanvasContext.clearRect(0, 0, rawSize, rawSize)
         outCanvasContext.drawImage(
-          unscaledCanvas.getContext('2d').canvas,
+          unscaledCanvas,
           0,
           0,
           rawSize,
           rawSize,
         )
+        gifOutput.setDelay(AwesomeQR._normalizeGIFFrameDelay(frame.delay))
+        gifOutput.setDispose(frame.disposalType ?? 0)
         gifOutput.addFrame(
           outCanvasContext.getImageData(0, 0, outCanvas.width, outCanvas.height)
             .data,
         )
+
+        previousFrame = frame
       }
-      if (!gifOutput) {
-        throw new Error('No frames.')
-      }
+
       gifOutput.finish()
       if (isElement(this.canvas)) {
         const u8array = gifOutput.stream().toFlattenUint8Array()

@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { spawnSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 
@@ -33,6 +34,26 @@ function walk(dir) {
     return absolute
   })
 }
+
+function readProjectFile(file) {
+  return fs.readFileSync(path.join(rootDir, file), 'utf8')
+}
+
+const requiredPackageFiles = [
+  'es/index.mjs',
+  'lib/index.cjs',
+  'es/client.mjs',
+  'lib/client.cjs',
+  'es/style.css',
+  'lib/style.css',
+  'es/index.d.ts',
+  'lib/index.d.ts',
+]
+
+for (const file of requiredPackageFiles) {
+  assert(fs.existsSync(path.join(rootDir, file)), `${file} should exist`)
+}
+console.log('ok package files exist')
 
 await assertImport(
   'esm root import is ssr-safe',
@@ -79,6 +100,42 @@ assert(
 )
 console.log('ok build output has no private node_modules paths')
 
+const forbiddenPackageReferences = [
+  'components/qrcode/deps',
+  'skia-canvas-lib',
+  'path-browserify',
+]
+const badReferenceFiles = builtFiles.filter((file) => {
+  const content = fs.readFileSync(file, 'utf8')
+
+  return forbiddenPackageReferences.some((reference) =>
+    content.includes(reference),
+  )
+})
+
+assert(
+  badReferenceFiles.length === 0,
+  [
+    'build output should not reference obsolete qrcode deps:',
+    ...badReferenceFiles,
+  ].join('\n'),
+)
+console.log('ok build output has no obsolete deps references')
+
+for (const entry of [
+  'es/qrcode/src/renderer.mjs',
+  'lib/qrcode/src/renderer.cjs',
+]) {
+  const content = readProjectFile(entry)
+
+  assert(!content.includes('qrcode.worker'), `${entry} should not load worker`)
+  assert(
+    !content.includes('renderQRCodeInWorker'),
+    `${entry} should not load worker renderer`,
+  )
+}
+console.log('ok packaged renderer uses main-thread path')
+
 for (const entry of [
   'es/index.mjs',
   'es/qrcode/src/QRCode.mjs',
@@ -97,6 +154,116 @@ for (const entry of [
   )
 }
 console.log('ok public entries lazy-load rendering core')
+
+const awesomeQRSource = readProjectFile('components/qrcode/core/awesome-qr.js')
+
+assert(
+  awesomeQRSource.includes('return this._draw()'),
+  'AwesomeQR.draw should return _draw directly',
+)
+assert(
+  !awesomeQRSource.includes(
+    'new Promise((resolve) => this._draw().then(resolve))',
+  ),
+  'AwesomeQR.draw should not swallow _draw rejections',
+)
+assert(
+  awesomeQRSource.includes('_normalizeGIFFrameDelay(frame.delay)'),
+  'GIF output should set delay per frame',
+)
+assert(
+  awesomeQRSource.includes('previousFrame.disposalType === 2') &&
+    awesomeQRSource.includes('previousFrame.disposalType === 3'),
+  'GIF output should handle disposal types 2 and 3',
+)
+assert(
+  awesomeQRSource.includes('MAX_GIF_FRAMES') &&
+    awesomeQRSource.includes('MAX_GIF_TOTAL_PIXELS'),
+  'GIF output should guard resource usage',
+)
+console.log('ok core render guards are present')
+
+const propsSource = readProjectFile('components/qrcode/src/props.ts')
+
+assert(
+  propsSource.includes('isIntegerInRange(value, 0, 7)'),
+  'maskPattern prop should validate 0..7',
+)
+assert(
+  propsSource.includes('isIntegerInRange(value, 1, 40)'),
+  'version prop should validate 1..40',
+)
+assert(
+  propsSource.includes('value > 0 && value <= 1'),
+  'dotScale prop should validate (0, 1]',
+)
+console.log('ok prop validators are present')
+
+const consumerDir = fs.mkdtempSync(path.join(rootDir, '.smoke-dts-'))
+const consumerFile = path.join(consumerDir, 'consumer.ts')
+
+process.on('exit', () => {
+  fs.rmSync(consumerDir, { recursive: true, force: true })
+})
+
+fs.writeFileSync(
+  consumerFile,
+  [
+    "import { clearQRCodeGIFCache, useQRCode, useQRCodeDownload } from 'vue3-next-qrcode'",
+    "import type { ComponentOptions, QRCodeInst, QRCodeOptions } from 'vue3-next-qrcode'",
+    '',
+    'const components: ComponentOptions = { data: { scale: 1 } }',
+    "const options: QRCodeOptions = { text: 'hello', components }",
+    'const instance: QRCodeInst = { downloadQRCode: async () => {} }',
+    'const hook = useQRCode()',
+    'const download = useQRCodeDownload(hook.qrcodeURL)',
+    'download.canDownload.value',
+    'hook.canDownload.value',
+    'hook.download()',
+    'instance.downloadQRCode()',
+    'clearQRCodeGIFCache()',
+    'options.text',
+    '',
+  ].join('\n'),
+)
+
+const tscBin = path.join(
+  rootDir,
+  'node_modules',
+  '.bin',
+  process.platform === 'win32' ? 'tsc.cmd' : 'tsc',
+)
+const tscResult = spawnSync(
+  tscBin,
+  [
+    '--ignoreConfig',
+    '--noEmit',
+    '--strict',
+    '--moduleResolution',
+    'bundler',
+    '--module',
+    'ESNext',
+    '--target',
+    'ESNext',
+    '--lib',
+    'DOM,ESNext',
+    consumerFile,
+  ],
+  {
+    cwd: rootDir,
+    encoding: 'utf8',
+  },
+)
+
+assert(
+  tscResult.status === 0,
+  [
+    'declaration consumer smoke failed:',
+    tscResult.stdout,
+    tscResult.stderr,
+  ].join('\n'),
+)
+console.log('ok declaration consumer smoke')
 
 const { QRCodeModel, QRErrorCorrectLevel } =
   await import('../es/qrcode/core/qrcode.mjs')

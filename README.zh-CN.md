@@ -32,7 +32,7 @@
 - 支持 Logo、图片背景、GIF 背景、自定义点样式、加载/错误状态和下载。
 - 根入口在 Nuxt 等 SSR 框架中可以安全导入。
 - 渲染核心按需懒加载，GIF parser/encoder 只在使用 GIF 背景时加载。
-- GIF 渲染默认先尝试 Worker，失败时自动回退到主线程。
+- GIF 渲染带资源保护并按需加载；当前包构建使用已验证的主线程渲染路径。
 - 使用 TypeScript 编写，提供组件、composable 和实例类型。
 
 ## 安装
@@ -48,7 +48,11 @@ npm install vue3-next-qrcode
 安装当前 beta 版本：
 
 ```bash
-pnpm add vue3-next-qrcode@beta
+pnpm add vue3-next-qrcode@4.1.0-beta.1
+```
+
+```bash
+npm install vue3-next-qrcode@4.1.0-beta.1
 ```
 
 ## 快速开始
@@ -119,7 +123,7 @@ const gifUrl = 'https://example.com/background.gif'
 </template>
 ```
 
-普通二维码不会加载 GIF parser、encoder 和 Worker 代码。只有使用 `gifBackgroundURL` 或 `gifBackground` 时才会按需加载。
+普通二维码不会加载 GIF parser 和 encoder 代码。只有使用 `gifBackgroundURL` 或 `gifBackground` 时才会按需加载。
 
 ### 加载和错误状态
 
@@ -248,15 +252,26 @@ function useQRCode(): {
   qrcodeURL: Ref<string | ArrayBuffer | Uint8Array | undefined>
   isLoading: Ref<boolean>
   error: Ref<Error | null>
-  generate: (options: UseQRCodeOptions) => Promise<string | ArrayBuffer | Uint8Array | undefined>
+  generate: (
+    options: UseQRCodeOptions,
+  ) => Promise<string | ArrayBuffer | Uint8Array | undefined>
+  canDownload: ComputedRef<boolean>
+  download: (fileName?: string) => Promise<void>
   clear: () => void
 }
 ```
 
+如果只需要复用下载行为，也可以直接使用导出的 `useQRCodeDownload(sourceRef)`。需要清理共享 GIF URL 缓存时，调用 `clearQRCodeGIFCache()`。
+
 ## 包导出
 
 ```ts
-import { Vue3NextQrcode, useQRCode } from 'vue3-next-qrcode'
+import {
+  Vue3NextQrcode,
+  useQRCode,
+  useQRCodeDownload,
+  clearQRCodeGIFCache,
+} from 'vue3-next-qrcode'
 import { QRCodeClient } from 'vue3-next-qrcode/client'
 import 'vue3-next-qrcode/style.css'
 ```
@@ -270,45 +285,45 @@ import 'vue3-next-qrcode/lib/style.css'
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `text` | `string` | 必填 | 编码到二维码里的文本。 |
-| `size` | `number` | `160` | 二维码尺寸，单位像素。 |
-| `margin` | `number` | `12` | 二维码主体周围的安静区边距。 |
-| `correctLevel` | `0 \| 1 \| 2 \| 3` | `1` | 纠错级别：L、M、Q、H。 |
-| `watchText` | `boolean` | `true` | `text` 变化时自动重新渲染。 |
-| `status` | `'loading' \| 'error' \| 'success'` | `undefined` | 展示加载或错误状态。 |
-| `colorDark` | `string` | `'#000000'` | 二维码模块颜色。 |
-| `colorLight` | `string` | `'#ffffff'` | 二维码背景颜色。 |
-| `autoColor` | `boolean` | `true` | 尽可能根据图片/GIF 背景推导二维码颜色。 |
-| `backgroundImage` | `string` | `undefined` | 静态背景图 URL 或 data URL。 |
-| `backgroundDimming` | `string` | `'rgba(0, 0, 0, 0)'` | 背景图上方的遮罩颜色。 |
-| `gifBackgroundURL` | `string` | `undefined` | GIF 背景 URL。 |
-| `gifBackground` | `ArrayBuffer` | `undefined` | GIF 背景二进制数据。 |
-| `logoImage` | `string` | `undefined` | 中间 Logo 图片 URL 或 data URL。 |
-| `logoScale` | `number` | `0.4` | Logo 相对二维码尺寸的比例。 |
-| `logoMargin` | `number` | `6` | Logo 边距，单位像素。 |
-| `logoCornerRadius` | `number` | `8` | Logo 圆角，单位像素。 |
-| `dotScale` | `number` | `1` | 点阵缩放比例，数值越小露出的背景越多。 |
-| `whiteMargin` | `boolean` | `true` | 使用白色安静区，而不是透明安静区。 |
-| `components` | `ComponentOptions` | 内置默认值 | 精细控制二维码局部样式。 |
-| `maskPattern` | `number` | `undefined` | 强制指定 QR mask pattern，一般无需设置。 |
-| `version` | `number` | `undefined` | 强制指定 QR version，范围 `1` 到 `40`，一般无需设置。 |
-| `defineProvider` | `Partial<DefineProvider>` | `undefined` | 当前组件的 CSS 变量覆盖。 |
-| `maskColor` | `string` | `'rgba(255, 255, 255, 0.96)'` | 加载/错误遮罩颜色。 |
-| `errorDescription` | `string \| VNode` | `'二维码已过期'` | 错误状态描述。 |
-| `errorActionDescription` | `string` | `'重新加载'` | 错误操作文案。 |
-| `onSuccess` | `(result) => void` 或数组 | `null` | 生成成功后触发，结果为 `string \| ArrayBuffer \| Uint8Array \| undefined`。 |
-| `onError` | `(error) => void` 或数组 | `null` | 生成失败后触发。 |
-| `onReload` | `() => void` 或数组 | `null` | 点击内置错误操作时触发。 |
+| Prop                     | 类型                                | 默认值                        | 说明                                                                        |
+| ------------------------ | ----------------------------------- | ----------------------------- | --------------------------------------------------------------------------- |
+| `text`                   | `string`                            | 必填                          | 编码到二维码里的文本。                                                      |
+| `size`                   | `number`                            | `160`                         | 二维码尺寸，单位像素。                                                      |
+| `margin`                 | `number`                            | `12`                          | 二维码主体周围的安静区边距。                                                |
+| `correctLevel`           | `0 \| 1 \| 2 \| 3`                  | `1`                           | 纠错级别：L、M、Q、H。                                                      |
+| `watchText`              | `boolean`                           | `true`                        | `text` 变化时自动重新渲染。                                                 |
+| `status`                 | `'loading' \| 'error' \| 'success'` | `undefined`                   | 展示加载或错误状态。                                                        |
+| `colorDark`              | `string`                            | `'#000000'`                   | 二维码模块颜色。                                                            |
+| `colorLight`             | `string`                            | `'#ffffff'`                   | 二维码背景颜色。                                                            |
+| `autoColor`              | `boolean`                           | `true`                        | 尽可能根据图片/GIF 背景推导二维码颜色。                                     |
+| `backgroundImage`        | `string`                            | `undefined`                   | 静态背景图 URL 或 data URL。                                                |
+| `backgroundDimming`      | `string`                            | `'rgba(0, 0, 0, 0)'`          | 背景图上方的遮罩颜色。                                                      |
+| `gifBackgroundURL`       | `string`                            | `undefined`                   | GIF 背景 URL。                                                              |
+| `gifBackground`          | `ArrayBuffer`                       | `undefined`                   | GIF 背景二进制数据。                                                        |
+| `logoImage`              | `string`                            | `undefined`                   | 中间 Logo 图片 URL 或 data URL。                                            |
+| `logoScale`              | `number`                            | `0.4`                         | Logo 相对二维码尺寸的比例。                                                 |
+| `logoMargin`             | `number`                            | `6`                           | Logo 边距，单位像素。                                                       |
+| `logoCornerRadius`       | `number`                            | `8`                           | Logo 圆角，单位像素。                                                       |
+| `dotScale`               | `number`                            | `1`                           | 点阵缩放比例，范围 `(0, 1]`，数值越小露出的背景越多。                       |
+| `whiteMargin`            | `boolean`                           | `true`                        | 使用白色安静区，而不是透明安静区。                                          |
+| `components`             | `ComponentOptions`                  | 内置默认值                    | 精细控制二维码局部样式。                                                    |
+| `maskPattern`            | `number`                            | `undefined`                   | 强制指定 `0` 到 `7` 的 QR mask pattern，一般无需设置。                      |
+| `version`                | `number`                            | `undefined`                   | 强制指定 QR version，范围 `1` 到 `40`，一般无需设置。                       |
+| `defineProvider`         | `Partial<DefineProvider>`           | `undefined`                   | 当前组件的 CSS 变量覆盖。                                                   |
+| `maskColor`              | `string`                            | `'rgba(255, 255, 255, 0.96)'` | 加载/错误遮罩颜色。                                                         |
+| `errorDescription`       | `string \| VNode`                   | `'二维码已过期'`              | 错误状态描述。                                                              |
+| `errorActionDescription` | `string`                            | `'重新加载'`                  | 错误操作文案。                                                              |
+| `onSuccess`              | `(result) => void` 或数组           | `null`                        | 生成成功后触发，结果为 `string \| ArrayBuffer \| Uint8Array \| undefined`。 |
+| `onError`                | `(error) => void` 或数组            | `null`                        | 生成失败后触发。                                                            |
+| `onReload`               | `() => void` 或数组                 | `null`                        | 点击内置错误操作时触发。                                                    |
 
 在 SFC 模板中，你可以按项目习惯使用 camelCase（`gifBackgroundURL`）或 kebab-case（`gif-background-url`）。
 
 ## 插槽和实例方法
 
-| 插槽 | 说明 |
-| --- | --- |
-| `loading` | 自定义加载状态。 |
+| 插槽          | 说明                 |
+| ------------- | -------------------- |
+| `loading`     | 自定义加载状态。     |
 | `errorAction` | 自定义错误操作区域。 |
 
 ```ts
@@ -351,9 +366,25 @@ import type {
   QRCodeStatus,
   QRCodeProps,
   QRCodeOptions,
+  ComponentOptions,
   UseQRCodeOptions,
   UseQRCodeReturnType,
+  QRCodeDownloadSource,
+  UseQRCodeDownloadReturn,
 } from 'vue3-next-qrcode'
+```
+
+## 测试
+
+当前 beta 包同时覆盖单元测试和发布 smoke：
+
+- `vitest` + `happy-dom` 覆盖 prop 校验、GIF URL 缓存/请求去重、下载行为、渲染队列语义、`useQRCode`、`QRCode` 组件异步渲染，以及当前包构建的主线程渲染路径。
+- `scripts/smoke.mjs` 校验 ESM/CJS 根入口、client 子路径、样式导出、发布文件完整性、声明文件消费、私有路径残留、packaged worker 禁用引用，以及 emoji 二维码编码。
+
+执行完整验证：
+
+```bash
+pnpm run test
 ```
 
 ## 迁移说明
@@ -383,7 +414,7 @@ import type {
 
 ### GIF 渲染需要配置 Worker 吗？
 
-不需要。内部会自动尝试 Worker 渲染，失败时自动回退主线程。
+不需要。当前包构建使用已验证的主线程 GIF 渲染。Worker 渲染会等相对 worker URL 通过 ESM 和 CJS 包 smoke 后再恢复。
 
 ### 可以在小程序里使用吗？
 

@@ -1,3 +1,34 @@
+## v4.1.0-beta.1
+
+### Feat
+
+- 新增 `useQRCodeDownload(sourceRef)`，为组件外部二维码结果提供可复用下载能力。
+- 新增 `clearQRCodeGIFCache()` 公共 API，可手动清理共享 GIF URL 缓存。
+- 新增 `vitest` 单元测试体系，覆盖 hooks、组件异步渲染、GIF 缓存、render queue、prop validators、renderer 路径和核心源码保护断言。
+
+### Improvements
+
+- `QRCode` 组件和 `useQRCode` 共享内部 `useQRCodeRenderQueue` 与 `useGifBackground`，统一 latest-only 渲染、卸载保护、GIF stale URL 处理和错误回传。
+- GIF URL 读取增加 in-flight 去重、有界缓存和清理版本保护，避免长期页面缓存无限增长或清理后被旧请求回填。
+- `AwesomeQR` GIF 输出支持逐帧 delay、disposal type 2/3，并复用帧处理 canvas 以降低重复分配。
+- 发布 smoke 扩展到声明文件消费、发布文件完整性、worker 禁用、obsolete deps 引用和核心修复静态检查。
+- 发布流程改为 npmjs registry，增加 `prepack` / `prepublishOnly` 保护，并将 Vue peer baseline 对齐到 `^3.5.0`。
+
+### Fix
+
+- 修复 `AwesomeQR.draw()` 在 `_draw()` reject 时永久 pending，组件 `onError` 和 `finally` 无法触达的问题。
+- 修复 `AwesomeQR` 初始化 canvas 时使用原始 `options.size` 而非合并默认值的问题。
+- 修复公开 `.d.ts` 依赖缺失 `core/awesome-qr` 类型的问题。
+- 修复 `QRCodeInst.downloadQRCode` 类型与实现不一致的问题，现在返回 `Promise<void>`。
+- 新增 `version`、`maskPattern`、`dotScale` 运行时 validators，提前拦截无效输入。
+- 当前包构建禁用未验证的 worker path，并更新 README / release 文档避免误导。
+
+### Verification
+
+- `pnpm run test`: passed，包含 `vue-tsc`、ESLint、Vitest、Prettier、完整构建和 smoke。
+- `vitest run`: 10 个测试文件，35 条测试通过。
+- `npm pack --dry-run --ignore-scripts`: passed，发布文件包含 ESM/CJS/client/style 入口和声明文件。
+
 ## v4.1.0-beta.0
 
 ### Feat

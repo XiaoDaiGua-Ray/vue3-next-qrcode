@@ -7,6 +7,8 @@ import type {
   QRCodeStatus,
   QRCodeComponentProps,
   QRCodeOptions,
+  ComponentOptions,
+  QRCodeRenderResponse,
 } from './qrcode/src/types'
 
 type QRCodeProps = ExtractPublicPropTypes<typeof props>
@@ -17,6 +19,8 @@ export type {
   QRCodeStatus,
   QRCodeComponentProps,
   QRCodeOptions,
+  ComponentOptions,
+  QRCodeRenderResponse,
   QRCodeProps,
 }
 
@@ -26,6 +30,12 @@ export type {
   UseQRCodeOptions,
   UseQRCodeReturnType,
 } from './qrcode/src/useQRCode'
+export { useQRCodeDownload } from './qrcode/src/useQRCodeDownload'
+export type {
+  QRCodeDownloadSource,
+  UseQRCodeDownloadReturn,
+} from './qrcode/src/useQRCodeDownload'
+export { clearQRCodeGIFCache } from './qrcode/src/utils'
 export { QRCodeClient } from './qrcode/src/QRCodeClient'
 
 const install = (app: App): void => {

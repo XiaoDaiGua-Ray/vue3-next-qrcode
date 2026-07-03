@@ -1,8 +1,9 @@
 {
   "name": "vue3-next-qrcode",
   "private": false,
-  "version": "4.1.0-beta.0",
+  "version": "4.1.0-beta.1",
   "type": "module",
+  "packageManager": "pnpm@11.9.0",
   "license": "MIT",
   "author": "Ray",
   "main": "lib/index.cjs",
@@ -47,18 +48,21 @@
     "build:umd": "vite build --config vite.bundle.config.ts",
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit",
-    "lint": "eslint components src --ext .ts,.tsx,.vue",
-    "lint:fix": "eslint components src --ext .ts,.tsx,.vue --fix",
+    "lint": "eslint components tests --ext .ts,.tsx,.vue",
+    "lint:fix": "eslint components tests --ext .ts,.tsx,.vue --fix",
+    "test:unit": "vitest run",
     "test:smoke": "node scripts/smoke.mjs",
-    "test": "pnpm run type-check && pnpm run lint && pnpm run format:check && pnpm run build && pnpm run test:smoke",
-    "format": "prettier --write \"components/**/*.{ts,tsx,vue,scss}\" \"src/**/*.{ts,vue}\"",
-    "format:check": "prettier --check \"components/**/*.{ts,tsx,vue,scss}\" \"src/**/*.{ts,vue}\""
+    "test": "pnpm run type-check && pnpm run lint && pnpm run test:unit && pnpm run format:check && pnpm run build && pnpm run test:smoke",
+    "format": "prettier --write \"components/**/*.{ts,tsx,vue,scss}\" \"tests/**/*.{ts,tsx}\" \"scripts/**/*.mjs\" \"README*.md\" \"docs/**/*.md\" \"CHANGELOG.md\" \"package.json\" \".github/workflows/*.yml\" \"*.config.ts\"",
+    "format:check": "prettier --check \"components/**/*.{ts,tsx,vue,scss}\" \"tests/**/*.{ts,tsx}\" \"scripts/**/*.mjs\" \"README*.md\" \"docs/**/*.md\" \"CHANGELOG.md\" \"package.json\" \".github/workflows/*.yml\" \"*.config.ts\"",
+    "prepack": "pnpm run build && pnpm run test:smoke",
+    "prepublishOnly": "pnpm run test"
   },
   "dependencies": {
     "js-binary-schema-parser": "^2.0.3"
   },
   "peerDependencies": {
-    "vue": "^3.0.1"
+    "vue": "^3.5.0"
   },
   "devDependencies": {
     "@types/node": "^25.9.1",
@@ -66,13 +70,16 @@
     "@typescript-eslint/parser": "^8.60.0",
     "@vitejs/plugin-vue": "^6.0.7",
     "@vitejs/plugin-vue-jsx": "^5.1.5",
+    "@vue/test-utils": "^2.4.11",
     "eslint": "^8.57.1",
     "eslint-plugin-vue": "^10.9.1",
+    "happy-dom": "^20.10.6",
     "prettier": "^3.8.3",
     "sass": "^1.100.0",
     "typescript": "^6.0.3",
     "vite": "^8.0.14",
     "vite-plugin-dts": "^5.0.1",
+    "vitest": "^4.1.9",
     "vue": "^3.5.35",
     "vue-tsc": "^3.3.2"
   },

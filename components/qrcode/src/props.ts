@@ -3,9 +3,14 @@ import type {
   QRCodeStatus,
   QRCodeLevel,
   DefineProvider,
+  ComponentOptions,
 } from './types'
 import type { PropType, VNode } from 'vue'
-import type { ComponentOptions } from '../core/awesome-qr'
+
+const isIntegerInRange = (value: unknown, min: number, max: number): boolean =>
+  Number.isInteger(value) &&
+  (value as number) >= min &&
+  (value as number) <= max
 
 const props = {
   defineProvider: {
@@ -117,6 +122,7 @@ const props = {
      * Accepts a value provided by _QRMaskPattern_
      */
     type: Number,
+    validator: (value: unknown): boolean => isIntegerInRange(value, 0, 7),
   },
   version: {
     /**
@@ -125,6 +131,7 @@ const props = {
      * Accepts an integer in range [1, 40]
      */
     type: Number,
+    validator: (value: unknown): boolean => isIntegerInRange(value, 1, 40),
   },
   components: {
     /**
@@ -283,6 +290,8 @@ const props = {
      */
     type: Number,
     default: 1,
+    validator: (value: unknown): boolean =>
+      typeof value === 'number' && value > 0 && value <= 1,
   },
   onSuccess: {
     /**

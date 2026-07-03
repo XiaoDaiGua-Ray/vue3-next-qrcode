@@ -1,12 +1,12 @@
 # AwesomeQR Optimization And Bug Analysis
 
-This note records the `components/qrcode/core/awesome-qr.js` findings addressed in `v4.1.0-beta.0`.
+This note records the `components/qrcode/core/awesome-qr.js` findings addressed during the `v4.1` beta stabilization work.
 
 ## Optimization Points
 
 - The Vue component and `useQRCode` statically imported `AwesomeQR`, so SSR and basic package imports pulled browser canvas and GIF logic too early. Rendering now goes through a lazy renderer.
 - GIF parsing and encoding were top-level dependencies. They now load dynamically only when `gifBackground` is used.
-- GIF rendering can block the main thread. GIF render requests now try a module worker first and fall back to the main thread when worker support is unavailable.
+- GIF rendering can block the main thread. The packaged build now uses the verified main-thread path while the worker path remains disabled until relative worker URLs pass ESM/CJS smoke tests.
 - The browser build depended on a vendored `skia-canvas` browser shim and `path-browserify`. This has been replaced with a small browser canvas adapter.
 - `_getAverageRGB` allocated a new array slice for every sampled pixel. It now reads RGBA channels directly from the typed array.
 - The normal root entry now stays small and SSR-safe. Heavier renderer modules are emitted as lazy chunks.
@@ -22,5 +22,5 @@ This note records the `components/qrcode/core/awesome-qr.js` findings addressed 
 
 ## Remaining Watch Items
 
-- Worker rendering depends on bundler support for module workers. The fallback path keeps behavior compatible, but the worker path should continue to be validated across Vite, Nuxt, and UMD consumers.
+- Worker rendering depends on bundler support for module workers. It is currently disabled in packaged builds and should only be re-enabled after Vite, Nuxt, ESM, and CJS package smoke tests pass.
 - GIF rendering is still intrinsically heavier than static QR rendering. The lazy split prevents the cost from affecting non-GIF users, but very large GIF backgrounds may still be expensive.
