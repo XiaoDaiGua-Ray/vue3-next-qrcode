@@ -10,18 +10,32 @@
   display: inline-flex;
   width: var(--r-qrcode-width);
   height: var(--r-qrcode-height);
-  overflow: hidden;
-  border: 1px solid rgba(5, 5, 5, 0.06);
+  overflow: var(--r-qrcode-overflow, hidden);
+  background-color: var(--r-qrcode-background-color, transparent);
+  border-width: var(--r-qrcode-border-width, 1px);
+  border-style: var(--r-qrcode-border-style, solid);
+  border-color: var(--r-qrcode-border-color, rgba(5, 5, 5, 0.06));
   border-radius: var(--r-qrcode-border-radius);
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
-    Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-    'Segoe UI Symbol', 'Noto Color Emoji';
+  font-family: var(
+    --r-qrcode-font-family,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    'Noto Sans',
+    sans-serif,
+    'Apple Color Emoji',
+    'Segoe UI Emoji',
+    'Segoe UI Symbol',
+    'Noto Color Emoji'
+  );
 
   img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: var(--r-qrcode-image-object-fit, contain);
   }
 
   .r-qrcode__loading--custom {
@@ -48,13 +62,21 @@
 
     .r-qrcode__spin {
       position: absolute;
-      width: 30px;
-      height: 30px;
-      border: var(--r-qrcode-spin-size, 3px) solid
-        var(--r-qrcode-primary-color, #1677ff);
+      width: var(--r-qrcode-loading-spinner-size, 30px);
+      height: var(--r-qrcode-loading-spinner-size, 30px);
+      border-width: var(
+        --r-qrcode-loading-spinner-border-width,
+        var(--r-qrcode-spin-size, 3px)
+      );
+      border-style: solid;
+      border-color: var(
+        --r-qrcode-loading-spinner-color,
+        var(--r-qrcode-primary-color, #1677ff)
+      );
       border-top-color: transparent;
       border-radius: 50%;
-      animation: r-qrcode-spin 0.75s linear infinite;
+      animation: r-qrcode-spin var(--r-qrcode-loading-animation-duration, 0.75s)
+        linear infinite;
       will-change: transform;
     }
   }
@@ -62,13 +84,13 @@
   .r-qrcode__error {
     position: absolute;
     inset: 0;
-    z-index: 10;
+    z-index: var(--r-qrcode-error-z-index, 10);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 5px 0;
-    color: rgba(0, 0, 0, 0.88);
+    gap: var(--r-qrcode-error-gap, 5px 0);
+    color: var(--r-qrcode-error-color, rgba(0, 0, 0, 0.88));
     transition: color 0.3s ease-in-out;
 
     &::before {
@@ -78,20 +100,30 @@
 
     .r-qrcode__error-content {
       text-align: center;
-      padding: 0 8px;
+      padding: var(--r-qrcode-error-content-padding, 0 8px);
     }
 
     .r-qrcode__error-btn {
       cursor: pointer;
-      color: var(--r-qrcode-primary-color, #1677ff);
-      transition: color 0.2s ease-in-out;
+      color: var(
+        --r-qrcode-action-color,
+        var(--r-qrcode-primary-color, #1677ff)
+      );
+      transition: color var(--r-qrcode-action-transition-duration, 0.2s)
+        ease-in-out;
 
       &:hover {
-        color: var(--r-qrcode-primary-color-2, #69b1ff);
+        color: var(
+          --r-qrcode-action-hover-color,
+          var(--r-qrcode-primary-color-2, #69b1ff)
+        );
       }
 
       .r-qrcode__error-btn-click {
-        color: var(--r-qrcode-primary-color, #1677ff);
+        color: var(
+          --r-qrcode-action-active-color,
+          var(--r-qrcode-primary-color, #1677ff)
+        );
       }
     }
   }

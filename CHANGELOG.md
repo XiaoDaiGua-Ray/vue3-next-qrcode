@@ -1,3 +1,33 @@
+## v4.1.0
+
+### Feat
+
+- `useQRCode({ defaultOptions, concurrency })` 新增 `status`、`latest` 并发策略、`cancel()`、`reset()`、`dispose()`，并保留默认 `reject` 策略和 `clear()` 兼容别名。
+- 新增 `QRCodeGenerationCancelledError`，被替代、取消或销毁的生成任务会明确拒绝。
+- `defineProvider` 新增容器、图片、Loading、Error、Action 全量语义 CSS variables，旧 primary/spin 变量继续作为 fallback。
+
+### Compatibility
+
+- Vue peer 最低版本恢复并保持为 `^3.0.1`；开发与完整验证版本更新到 Vue `3.5.41`。
+- 公开声明改用 Vue 3.0.1 支持的 `ExtractPropTypes`、单泛型 `Ref<T>` / `ComputedRef<T>` 和本地 `CompatibleMaybeRef<T>`，组件声明收敛为 `DefineComponent<QRCodeProps>`。
+- Nuxt 示例更新到 Nuxt 4 `app/` 目录、显式样式入口和 `<ClientOnly>` fallback。
+
+### Fix
+
+- 修复旧 GIF 请求的 `finally` 误删同 URL 新请求，导致请求去重失效的竞态。
+- 修复 `AwesomeQR.defaultComponentOptions` 嵌套对象在实例间共享，`dotScale` 污染后续实例默认样式的问题。
+- 修复 Vue 3.0.1 尚无 `setupContext.expose()` 时组件 setup 抛错的问题，通过 setup 返回值保持实例下载方法兼容。
+- CI 改为 Node 24 + packageManager 声明的 pnpm，执行完整 `pnpm run test`；删除无凭据且会与人工发布重复的旧 Release 发布工作流。
+
+### Breaking Changes
+
+- 浏览器二进制结果类型从 Node `Buffer` 改为 `Uint8Array`。
+- `downloadQRCode()` 返回 `Promise<void>`。
+- 非法 `version`、`maskPattern`、`dotScale` 会被严格校验。
+- 未列入 `exports` 的内部深层导入不再保证可用。
+
+Vue 最低版本仍为 `3.0.1`，不是本次破坏性变更。
+
 ## v4.1.0-beta.1
 
 ### Feat

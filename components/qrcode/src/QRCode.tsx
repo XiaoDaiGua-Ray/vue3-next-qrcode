@@ -15,9 +15,15 @@ import {
   onBeforeUnmount,
 } from 'vue'
 
+import type { DefineComponent, ExtractPropTypes } from 'vue'
 import type { QRCodeBaseOptions, QRCodeRenderResponse } from './types'
 
-export default defineComponent({
+type ResolvedQRCodeProps = ExtractPropTypes<typeof props>
+
+export type QRCodeProps = Pick<ResolvedQRCodeProps, 'text'> &
+  Partial<Omit<ResolvedQRCodeProps, 'text'>>
+
+const QRCode = defineComponent({
   name: 'Vue3NextQrcode',
   props,
   setup(props, ctx) {
@@ -170,9 +176,14 @@ export default defineComponent({
     })
 
     // Expose
-    expose({
-      downloadQRCode,
-    })
+    // `setupContext.expose()` was added after Vue 3.0.1. Returning the method
+    // keeps it available on component refs in Vue 3.0.x, while newer Vue
+    // versions use the explicit exposed surface.
+    if (typeof expose === 'function') {
+      expose({
+        downloadQRCode,
+      })
+    }
 
     return {
       qrcodeURL,
@@ -180,6 +191,7 @@ export default defineComponent({
       isClick,
       loadingClass,
       errorActionClick: handleErrorAction,
+      downloadQRCode,
     }
   },
   render() {
@@ -244,3 +256,5 @@ export default defineComponent({
     )
   },
 })
+
+export default QRCode as unknown as DefineComponent<QRCodeProps>

@@ -1,7 +1,7 @@
 {
   "name": "vue3-next-qrcode",
   "private": false,
-  "version": "4.1.0-beta.1",
+  "version": "4.1.0",
   "type": "module",
   "packageManager": "pnpm@11.9.0",
   "license": "MIT",
@@ -53,8 +53,8 @@
     "test:unit": "vitest run",
     "test:smoke": "node scripts/smoke.mjs",
     "test": "pnpm run type-check && pnpm run lint && pnpm run test:unit && pnpm run format:check && pnpm run build && pnpm run test:smoke",
-    "format": "prettier --write \"components/**/*.{ts,tsx,vue,scss}\" \"tests/**/*.{ts,tsx}\" \"scripts/**/*.mjs\" \"README*.md\" \"docs/**/*.md\" \"CHANGELOG.md\" \"package.json\" \".github/workflows/*.yml\" \"*.config.ts\"",
-    "format:check": "prettier --check \"components/**/*.{ts,tsx,vue,scss}\" \"tests/**/*.{ts,tsx}\" \"scripts/**/*.mjs\" \"README*.md\" \"docs/**/*.md\" \"CHANGELOG.md\" \"package.json\" \".github/workflows/*.yml\" \"*.config.ts\"",
+    "format": "prettier --write \"components/**/*.{ts,tsx,vue,scss}\" \"tests/**/*.{ts,tsx}\" \"scripts/**/*.mjs\" \"examples/**/*.{ts,vue}\" \"README*.md\" \"docs/**/*.md\" \"CHANGELOG.md\" \"package.json\" \".github/workflows/*.yml\" \"*.config.ts\"",
+    "format:check": "prettier --check \"components/**/*.{ts,tsx,vue,scss}\" \"tests/**/*.{ts,tsx}\" \"scripts/**/*.mjs\" \"examples/**/*.{ts,vue}\" \"README*.md\" \"docs/**/*.md\" \"CHANGELOG.md\" \"package.json\" \".github/workflows/*.yml\" \"*.config.ts\"",
     "prepack": "pnpm run build && pnpm run test:smoke",
     "prepublishOnly": "pnpm run test"
   },
@@ -62,7 +62,7 @@
     "js-binary-schema-parser": "^2.0.3"
   },
   "peerDependencies": {
-    "vue": "^3.5.0"
+    "vue": "^3.0.1"
   },
   "devDependencies": {
     "@types/node": "^25.9.1",
@@ -80,7 +80,7 @@
     "vite": "^8.0.14",
     "vite-plugin-dts": "^5.0.1",
     "vitest": "^4.1.9",
-    "vue": "^3.5.35",
+    "vue": "3.5.41",
     "vue-tsc": "^3.3.2"
   },
   "description": "<p align=\"center\">   <a href=\"https://github.com/XiaoDaiGua-Ray/vue3-next-qrcode\">     <img width=\"216\" src=\"https://usc1.contabostorage.com/c2e495d7890844d392e8ec0c6e5d77eb:alist/ray/ray.svg?sign=ZklU9Bh5b6oKp1X0LOhGwkx4g5mW4wk_w9Jt5zlZ5EQ=:0\">   </a> </p> <p align=\"center\">   <a href=\"https://www.npmjs.com/package/vue3-next-qrcode?activeTab=readme\"><img src=\"https://img.shields.io/npm/v/vue3-next-qrcode.svg\" alt=\"npm package\"></a>   <a href=\"https://github.com/XiaoDaiGua-Ray/vue3-next-qrcode/blob/main/LICENSE\"><img src=\"https://img.shields.io/github/license/XiaoDaiGua-Ray/vue3-next-qrcode\" alt=\"LICENSE\"></a> </p>",

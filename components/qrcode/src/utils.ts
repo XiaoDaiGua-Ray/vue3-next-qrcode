@@ -123,7 +123,9 @@ export const readGIFAsArrayBuffer = async (
       return buffer
     })
     .finally(() => {
-      gifRequests.delete(url)
+      if (gifRequests.get(url) === request) {
+        gifRequests.delete(url)
+      }
     })
 
   gifRequests.set(url, request)

@@ -83,7 +83,26 @@ export interface DefineProvider {
   '--r-qrcode-primary-color-2'?: string
   '--r-qrcode-width'?: string
   '--r-qrcode-height'?: string
+  '--r-qrcode-background-color'?: string
+  '--r-qrcode-border-width'?: string
+  '--r-qrcode-border-style'?: string
+  '--r-qrcode-border-color'?: string
   '--r-qrcode-border-radius'?: string
+  '--r-qrcode-overflow'?: string
+  '--r-qrcode-font-family'?: string
+  '--r-qrcode-image-object-fit'?: string
   '--r-qrcode-mask-color'?: string
   '--r-qrcode-spin-size'?: string
+  '--r-qrcode-loading-spinner-size'?: string
+  '--r-qrcode-loading-spinner-border-width'?: string
+  '--r-qrcode-loading-spinner-color'?: string
+  '--r-qrcode-loading-animation-duration'?: string
+  '--r-qrcode-error-z-index'?: string
+  '--r-qrcode-error-gap'?: string
+  '--r-qrcode-error-color'?: string
+  '--r-qrcode-error-content-padding'?: string
+  '--r-qrcode-action-color'?: string
+  '--r-qrcode-action-hover-color'?: string
+  '--r-qrcode-action-active-color'?: string
+  '--r-qrcode-action-transition-duration'?: string
 }

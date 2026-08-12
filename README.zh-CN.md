@@ -45,15 +45,7 @@ pnpm add vue3-next-qrcode
 npm install vue3-next-qrcode
 ```
 
-安装当前 beta 版本：
-
-```bash
-pnpm add vue3-next-qrcode@4.1.0-beta.1
-```
-
-```bash
-npm install vue3-next-qrcode@4.1.0-beta.1
-```
+支持 Vue `3.0.1` 及以上版本，peer 范围继续保持 `^3.0.1`。
 
 ## 快速开始
 
@@ -171,7 +163,7 @@ const download = () => {
 </template>
 ```
 
-## Nuxt 和 SSR
+## Nuxt 4 和 SSR
 
 包入口可以在 SSR 阶段安全导入。二维码图片生成仍然依赖浏览器 Canvas，因此组件渲染请放到 `<ClientOnly>` 或等价的客户端边界中。
 
@@ -201,15 +193,14 @@ export default defineNuxtConfig({
 })
 ```
 
-多数 Nuxt 项目不需要额外的 `optimizeDeps` 或 alias 配置。如果项目有严格的转译策略，可以保留：
+Nuxt 4 项目应把页面或组件放在 `app/pages/` 或 `app/components/` 下，并显式导入
+`vue3-next-qrcode/style.css`。Nuxt 会从服务端构建中 tree-shake 掉 `<ClientOnly>`
+默认插槽，因此只由内部组件引入的 CSS 不一定出现在首屏 HTML 中；建议同时提供
+`#fallback`，保证 SSR 占位稳定并减少布局抖动。多数项目不需要 `transpile`、alias
+或 `optimizeDeps` 配置。
 
-```ts
-export default defineNuxtConfig({
-  build: {
-    transpile: ['vue3-next-qrcode'],
-  },
-})
-```
+参考官方 [Nuxt `<ClientOnly>` 文档](https://nuxt.com/docs/4.x/api/components/client-only)
+和 [Nuxt 4 升级指南](https://nuxt.com/docs/4.x/getting-started/upgrade)。
 
 ## 编程式生成
 
@@ -218,19 +209,19 @@ export default defineNuxtConfig({
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useQRCode } from 'vue3-next-qrcode'
+import { QRCodeGenerationCancelledError, useQRCode } from 'vue3-next-qrcode'
 
 const text = ref('Hello from useQRCode')
-const { qrcodeURL, isLoading, error, generate, clear } = useQRCode()
+const { qrcodeURL, isLoading, status, error, generate, cancel, reset } =
+  useQRCode({ concurrency: 'latest' })
 
-const create = () =>
-  generate({
-    text: text.value,
-    size: 300,
-    margin: 20,
-    colorDark: '#111827',
-    colorLight: '#ffffff',
-  })
+const create = async () => {
+  try {
+    await generate({ text: text.value, size: 300, margin: 20 })
+  } catch (cause) {
+    if (!(cause instanceof QRCodeGenerationCancelledError)) throw cause
+  }
+}
 </script>
 
 <template>
@@ -238,8 +229,10 @@ const create = () =>
   <button :disabled="isLoading" @click="create">
     {{ isLoading ? '生成中...' : '生成' }}
   </button>
-  <button @click="clear">清除</button>
+  <button @click="cancel">取消</button>
+  <button @click="reset">重置</button>
 
+  <p>状态：{{ status }}</p>
   <p v-if="error">{{ error.message }}</p>
   <img v-if="typeof qrcodeURL === 'string'" :src="qrcodeURL" alt="二维码" />
 </template>
@@ -251,15 +244,25 @@ const create = () =>
 function useQRCode(): {
   qrcodeURL: Ref<string | ArrayBuffer | Uint8Array | undefined>
   isLoading: Ref<boolean>
+  status: Ref<'idle' | 'loading' | 'success' | 'error' | 'cancelled'>
   error: Ref<Error | null>
   generate: (
     options: UseQRCodeOptions,
   ) => Promise<string | ArrayBuffer | Uint8Array | undefined>
   canDownload: ComputedRef<boolean>
   download: (fileName?: string) => Promise<void>
+  cancel: () => void
+  reset: () => void
   clear: () => void
+  dispose: () => void
 }
 ```
+
+`useQRCode({ defaultOptions, concurrency })` 支持兼容默认值 `reject` 和
+`latest`。当 `defaultOptions.text` 完整提供时，可以无参数调用 `generate()`。
+被替代、取消或 dispose 的调用会以 `QRCodeGenerationCancelledError` 拒绝。
+`cancel()` 保留上一次成功图片；`reset()` 清空结果；`clear()` 继续作为
+`reset()` 的兼容别名。Vue 作用域中的 Hook 会自动 dispose，也可以显式调用。
 
 如果只需要复用下载行为，也可以直接使用导出的 `useQRCodeDownload(sourceRef)`。需要清理共享 GIF URL 缓存时，调用 `clearQRCodeGIFCache()`。
 
@@ -334,15 +337,17 @@ interface QRCodeInst {
 
 ## CSS 变量
 
-```css
---r-qrcode-width           /* 二维码宽度 */
---r-qrcode-height          /* 二维码高度 */
---r-qrcode-border-radius   /* 边框圆角 */
---r-qrcode-mask-color      /* 加载/错误遮罩颜色 */
---r-qrcode-primary-color   /* 主操作色 */
---r-qrcode-primary-color-2 /* hover 操作色 */
---r-qrcode-spin-size       /* 加载动画边框宽度 */
-```
+| 区域      | 变量                                                                                                                                                                                        |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 尺寸      | `--r-qrcode-width`、`--r-qrcode-height`                                                                                                                                                     |
+| 容器      | `--r-qrcode-background-color`、`--r-qrcode-border-width`、`--r-qrcode-border-style`、`--r-qrcode-border-color`、`--r-qrcode-border-radius`、`--r-qrcode-overflow`、`--r-qrcode-font-family` |
+| 图片/遮罩 | `--r-qrcode-image-object-fit`、`--r-qrcode-mask-color`                                                                                                                                      |
+| Loading   | `--r-qrcode-loading-spinner-size`、`--r-qrcode-loading-spinner-border-width`、`--r-qrcode-loading-spinner-color`、`--r-qrcode-loading-animation-duration`                                   |
+| Error     | `--r-qrcode-error-z-index`、`--r-qrcode-error-gap`、`--r-qrcode-error-color`、`--r-qrcode-error-content-padding`                                                                            |
+| Action    | `--r-qrcode-action-color`、`--r-qrcode-action-hover-color`、`--r-qrcode-action-active-color`、`--r-qrcode-action-transition-duration`                                                       |
+
+旧变量 `--r-qrcode-primary-color`、`--r-qrcode-primary-color-2`、
+`--r-qrcode-spin-size` 继续作为兼容 fallback。
 
 使用 `defineProvider` 可以对单个组件覆盖：
 
@@ -350,9 +355,12 @@ interface QRCodeInst {
 <Vue3NextQrcode
   text="Styled QR"
   :defineProvider="{
-    '--r-qrcode-primary-color': '#1677ff',
-    '--r-qrcode-primary-color-2': '#69b1ff',
-    '--r-qrcode-border-radius': '8px',
+    '--r-qrcode-background-color': '#101828',
+    '--r-qrcode-border-color': '#6941c6',
+    '--r-qrcode-border-radius': '16px',
+    '--r-qrcode-loading-spinner-color': '#9e77ed',
+    '--r-qrcode-action-color': '#fdb022',
+    '--r-qrcode-action-hover-color': '#f79009',
   }"
 />
 ```
@@ -376,7 +384,7 @@ import type {
 
 ## 测试
 
-当前 beta 包同时覆盖单元测试和发布 smoke：
+当前包同时覆盖单元测试和发布 smoke：
 
 - `vitest` + `happy-dom` 覆盖 prop 校验、GIF URL 缓存/请求去重、下载行为、渲染队列语义、`useQRCode`、`QRCode` 组件异步渲染，以及当前包构建的主线程渲染路径。
 - `scripts/smoke.mjs` 校验 ESM/CJS 根入口、client 子路径、样式导出、发布文件完整性、声明文件消费、私有路径残留、packaged worker 禁用引用，以及 emoji 二维码编码。
@@ -389,12 +397,18 @@ pnpm run test
 
 ## 迁移说明
 
-### v4.1 beta
+### v4.1.0
 
 - 推荐使用 `vue3-next-qrcode/style.css` 引入样式。
 - Nuxt 中推荐使用 `vue3-next-qrcode/client` 和 `<ClientOnly>`。
 - 根入口和 `useQRCode` 导入是 SSR-safe 的，但二维码图片生成仍在客户端。
 - 浏览器侧二进制结果使用 `Uint8Array`，不再暴露 Node `Buffer` 类型。
+- `downloadQRCode()` 返回 `Promise<void>`。
+- 非法 `version`、`maskPattern`、`dotScale` 会直接校验失败。
+- 未列入 package `exports` 的内部深层导入不受支持。
+- Vue 最低版本仍是 `3.0.1`，不是破坏性升级。
+
+详见 [v4.1.0 迁移文档](./docs/releases/v4.1.0-migration.md)。
 
 ### 从 v3 迁移
 

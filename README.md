@@ -45,15 +45,7 @@ pnpm add vue3-next-qrcode
 npm install vue3-next-qrcode
 ```
 
-For the current beta release:
-
-```bash
-pnpm add vue3-next-qrcode@4.1.0-beta.1
-```
-
-```bash
-npm install vue3-next-qrcode@4.1.0-beta.1
-```
+Vue `3.0.1` or newer is supported. The package peer range remains `^3.0.1`.
 
 ## Quick Start
 
@@ -171,7 +163,7 @@ const download = () => {
 </template>
 ```
 
-## Nuxt And SSR
+## Nuxt 4 And SSR
 
 The package entry is safe to import during SSR. Rendering still requires browser canvas APIs, so render QR codes inside `<ClientOnly>` or another client-only boundary.
 
@@ -201,15 +193,15 @@ export default defineNuxtConfig({
 })
 ```
 
-Most Nuxt projects do not need special `optimizeDeps` or alias configuration. If your project has a strict transpile policy, you can still add:
+In Nuxt 4, put the page or component under `app/pages/` or `app/components/`.
+Import `vue3-next-qrcode/style.css` explicitly: Nuxt removes the default
+`<ClientOnly>` slot from the server bundle, so component-only CSS may not be
+inlined into the initial HTML. A `#fallback` gives SSR a stable placeholder and
+avoids layout shifts. Most projects need no `transpile`, alias, or
+`optimizeDeps` configuration.
 
-```ts
-export default defineNuxtConfig({
-  build: {
-    transpile: ['vue3-next-qrcode'],
-  },
-})
-```
+See the official [Nuxt `<ClientOnly>` documentation](https://nuxt.com/docs/4.x/api/components/client-only)
+and [Nuxt 4 upgrade guide](https://nuxt.com/docs/4.x/getting-started/upgrade).
 
 ## Programmatic Usage
 
@@ -218,19 +210,19 @@ Use `useQRCode` when you need to generate a QR image without rendering the packa
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useQRCode } from 'vue3-next-qrcode'
+import { QRCodeGenerationCancelledError, useQRCode } from 'vue3-next-qrcode'
 
 const text = ref('Hello from useQRCode')
-const { qrcodeURL, isLoading, error, generate, clear } = useQRCode()
+const { qrcodeURL, isLoading, status, error, generate, cancel, reset } =
+  useQRCode({ concurrency: 'latest' })
 
-const create = () =>
-  generate({
-    text: text.value,
-    size: 300,
-    margin: 20,
-    colorDark: '#111827',
-    colorLight: '#ffffff',
-  })
+const create = async () => {
+  try {
+    await generate({ text: text.value, size: 300, margin: 20 })
+  } catch (cause) {
+    if (!(cause instanceof QRCodeGenerationCancelledError)) throw cause
+  }
+}
 </script>
 
 <template>
@@ -238,8 +230,10 @@ const create = () =>
   <button :disabled="isLoading" @click="create">
     {{ isLoading ? 'Generating...' : 'Generate' }}
   </button>
-  <button @click="clear">Clear</button>
+  <button @click="cancel">Cancel</button>
+  <button @click="reset">Reset</button>
 
+  <p>Status: {{ status }}</p>
   <p v-if="error">{{ error.message }}</p>
   <img v-if="typeof qrcodeURL === 'string'" :src="qrcodeURL" alt="QR code" />
 </template>
@@ -251,15 +245,27 @@ const create = () =>
 function useQRCode(): {
   qrcodeURL: Ref<string | ArrayBuffer | Uint8Array | undefined>
   isLoading: Ref<boolean>
+  status: Ref<'idle' | 'loading' | 'success' | 'error' | 'cancelled'>
   error: Ref<Error | null>
   generate: (
     options: UseQRCodeOptions,
   ) => Promise<string | ArrayBuffer | Uint8Array | undefined>
   canDownload: ComputedRef<boolean>
   download: (fileName?: string) => Promise<void>
+  cancel: () => void
+  reset: () => void
   clear: () => void
+  dispose: () => void
 }
 ```
+
+`useQRCode({ defaultOptions, concurrency })` accepts `reject` (the compatible
+default) or `latest`. When `defaultOptions.text` is present, `generate()` can be
+called without arguments. Replaced, cancelled, and disposed requests reject
+with `QRCodeGenerationCancelledError`. `cancel()` preserves the last successful
+image; `reset()` clears it; `clear()` remains a compatibility alias for
+`reset()`. Hooks created in a Vue scope dispose automatically and can always be
+disposed explicitly.
 
 `useQRCodeDownload(sourceRef)` is also exported when you only need reusable download behavior for an existing QR result ref. Use `clearQRCodeGIFCache()` to clear the shared GIF URL cache.
 
@@ -334,15 +340,17 @@ interface QRCodeInst {
 
 ## CSS Variables
 
-```css
---r-qrcode-width           /* QR code width */
---r-qrcode-height          /* QR code height */
---r-qrcode-border-radius   /* Border radius */
---r-qrcode-mask-color      /* Loading/error mask color */
---r-qrcode-primary-color   /* Primary action color */
---r-qrcode-primary-color-2 /* Hover action color */
---r-qrcode-spin-size       /* Loading spinner border width */
-```
+| Area       | Variables                                                                                                                                                                                   |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Size       | `--r-qrcode-width`, `--r-qrcode-height`                                                                                                                                                     |
+| Container  | `--r-qrcode-background-color`, `--r-qrcode-border-width`, `--r-qrcode-border-style`, `--r-qrcode-border-color`, `--r-qrcode-border-radius`, `--r-qrcode-overflow`, `--r-qrcode-font-family` |
+| Image/mask | `--r-qrcode-image-object-fit`, `--r-qrcode-mask-color`                                                                                                                                      |
+| Loading    | `--r-qrcode-loading-spinner-size`, `--r-qrcode-loading-spinner-border-width`, `--r-qrcode-loading-spinner-color`, `--r-qrcode-loading-animation-duration`                                   |
+| Error      | `--r-qrcode-error-z-index`, `--r-qrcode-error-gap`, `--r-qrcode-error-color`, `--r-qrcode-error-content-padding`                                                                            |
+| Action     | `--r-qrcode-action-color`, `--r-qrcode-action-hover-color`, `--r-qrcode-action-active-color`, `--r-qrcode-action-transition-duration`                                                       |
+
+Legacy `--r-qrcode-primary-color`, `--r-qrcode-primary-color-2`, and
+`--r-qrcode-spin-size` remain supported fallbacks.
 
 Use `defineProvider` for per-component overrides:
 
@@ -350,9 +358,12 @@ Use `defineProvider` for per-component overrides:
 <Vue3NextQrcode
   text="Styled QR"
   :defineProvider="{
-    '--r-qrcode-primary-color': '#1677ff',
-    '--r-qrcode-primary-color-2': '#69b1ff',
-    '--r-qrcode-border-radius': '8px',
+    '--r-qrcode-background-color': '#101828',
+    '--r-qrcode-border-color': '#6941c6',
+    '--r-qrcode-border-radius': '16px',
+    '--r-qrcode-loading-spinner-color': '#9e77ed',
+    '--r-qrcode-action-color': '#fdb022',
+    '--r-qrcode-action-hover-color': '#f79009',
   }"
 />
 ```
@@ -376,7 +387,7 @@ import type {
 
 ## Testing
 
-The beta package is covered by both unit tests and release smoke tests:
+The package is covered by unit tests and release smoke tests:
 
 - `vitest` + `happy-dom` cover prop validators, GIF URL cache/deduplication, download behavior, render queue semantics, `useQRCode`, `QRCode` component async rendering, and the packaged main-thread renderer path.
 - `scripts/smoke.mjs` verifies ESM/CJS root imports, client subpath imports, style exports, package file presence, declaration consumption, stale private path references, disabled packaged worker references, and emoji QR encoding.
@@ -389,12 +400,18 @@ pnpm run test
 
 ## Migration Notes
 
-### v4.1 beta
+### v4.1.0
 
 - Prefer `vue3-next-qrcode/style.css` for styles.
 - Use `vue3-next-qrcode/client` with Nuxt `<ClientOnly>`.
 - Root imports and `useQRCode` imports are SSR-safe, but QR image generation is still client-side.
 - Browser-facing binary results use `Uint8Array` instead of Node `Buffer`.
+- `downloadQRCode()` returns `Promise<void>`.
+- Invalid `version`, `maskPattern`, and `dotScale` values now fail validation.
+- Internal deep imports not listed in package `exports` are unsupported.
+- The minimum Vue version remains `3.0.1`; this is not a breaking change.
+
+See the [v4.1.0 migration guide](./docs/releases/v4.1.0-migration.md).
 
 ### From v3
 

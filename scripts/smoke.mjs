@@ -122,6 +122,29 @@ assert(
 )
 console.log('ok build output has no obsolete deps references')
 
+const publicDeclarations = [
+  'es/index.d.ts',
+  'es/client.d.ts',
+  'es/qrcode/src/QRCode.d.ts',
+  'es/qrcode/src/QRCodeClient.d.ts',
+  'es/qrcode/src/useQRCode.d.ts',
+  'es/qrcode/src/useQRCodeDownload.d.ts',
+].map(readProjectFile)
+const incompatibleVueDeclarationPatterns = [
+  /ExtractPublicPropTypes/,
+  /ShallowRef</,
+  /Ref<[^>]+,[^>]+>/,
+  /\bMaybeRef</,
+]
+
+for (const pattern of incompatibleVueDeclarationPatterns) {
+  assert(
+    !publicDeclarations.some((declaration) => pattern.test(declaration)),
+    `public declarations should not contain Vue 3.5-only shape ${pattern}`,
+  )
+}
+console.log('ok public declarations avoid Vue 3.5-only shapes')
+
 for (const entry of [
   'es/qrcode/src/renderer.mjs',
   'lib/qrcode/src/renderer.cjs',
@@ -209,20 +232,33 @@ process.on('exit', () => {
 fs.writeFileSync(
   consumerFile,
   [
-    "import { clearQRCodeGIFCache, useQRCode, useQRCodeDownload } from 'vue3-next-qrcode'",
-    "import type { ComponentOptions, QRCodeInst, QRCodeOptions } from 'vue3-next-qrcode'",
+    "import { QRCodeGenerationCancelledError, clearQRCodeGIFCache, useQRCode, useQRCodeDownload } from 'vue3-next-qrcode'",
+    "import type { ComponentOptions, DefineProvider, QRCodeGenerationStatus, QRCodeInst, QRCodeOptions, QRCodeProps } from 'vue3-next-qrcode'",
     '',
     'const components: ComponentOptions = { data: { scale: 1 } }',
     "const options: QRCodeOptions = { text: 'hello', components }",
     'const instance: QRCodeInst = { downloadQRCode: async () => {} }',
     'const hook = useQRCode()',
+    "const configuredHook = useQRCode({ defaultOptions: { text: 'default' }, concurrency: 'latest' })",
     'const download = useQRCodeDownload(hook.qrcodeURL)',
+    "const props: QRCodeProps = { text: 'component' }",
+    "const theme: DefineProvider = { '--r-qrcode-action-color': '#7f56d9' }",
+    "const status: QRCodeGenerationStatus = 'cancelled'",
     'download.canDownload.value',
     'hook.canDownload.value',
     'hook.download()',
+    "hook.generate({ text: 'hook' })",
+    'configuredHook.generate()',
+    'configuredHook.cancel()',
+    'configuredHook.reset()',
+    'configuredHook.dispose()',
+    'new QRCodeGenerationCancelledError()',
     'instance.downloadQRCode()',
     'clearQRCodeGIFCache()',
     'options.text',
+    'props.text',
+    'theme',
+    'status',
     '',
   ].join('\n'),
 )

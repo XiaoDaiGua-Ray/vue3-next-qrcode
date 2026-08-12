@@ -23,6 +23,18 @@ describe('AwesomeQR source guards', () => {
     )
   })
 
+  it('clones nested component defaults for every instance', () => {
+    expect(awesomeQRSource).toContain(
+      'Object.entries(AwesomeQR.defaultComponentOptions)',
+    )
+    expect(awesomeQRSource).toContain(
+      'Object.assign({}, defaultValue, componentOptions[key])',
+    )
+    expect(awesomeQRSource).not.toContain(
+      '_options.components = AwesomeQR.defaultComponentOptions',
+    )
+  })
+
   it('guards expensive GIF inputs and preserves frame semantics', () => {
     expect(awesomeQRSource).toContain('MAX_GIF_FRAMES')
     expect(awesomeQRSource).toContain('MAX_GIF_TOTAL_PIXELS')

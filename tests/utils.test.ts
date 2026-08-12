@@ -85,6 +85,31 @@ describe('utils', () => {
     expect(fetch).toHaveBeenCalledTimes(2)
   })
 
+  it('does not let an old finally remove a newer request for the same URL', async () => {
+    const firstResponse = deferred<Response>()
+    const secondResponse = deferred<Response>()
+    const fetch = vi
+      .fn<(url: string) => Promise<Response>>()
+      .mockReturnValueOnce(firstResponse.promise)
+      .mockReturnValueOnce(secondResponse.promise)
+    vi.stubGlobal('fetch', fetch)
+
+    const first = readGIFAsArrayBuffer('/race.gif')
+    clearQRCodeGIFCache()
+    const second = readGIFAsArrayBuffer('/race.gif')
+
+    firstResponse.resolve(response(arrayBuffer(1)))
+    await first
+
+    const dedupedSecond = readGIFAsArrayBuffer('/race.gif')
+    const latestBuffer = arrayBuffer(2)
+    secondResponse.resolve(response(latestBuffer))
+
+    await expect(second).resolves.toBe(latestBuffer)
+    await expect(dedupedSecond).resolves.toBe(latestBuffer)
+    expect(fetch).toHaveBeenCalledTimes(2)
+  })
+
   it('throws a clear error when GIF fetch fails', async () => {
     vi.stubGlobal(
       'fetch',

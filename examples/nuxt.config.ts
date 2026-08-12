@@ -1,21 +1,13 @@
-// Nuxt 3 配置示例
-// https://nuxt.com/docs/api/configuration/nuxt-config
+// Nuxt 4 配置示例。页面默认放在 app/pages/，组件放在 app/components/。
+// https://nuxt.com/docs/4.x/getting-started/upgrade
 
 export default defineNuxtConfig({
+  compatibilityDate: '2026-08-12',
   devtools: { enabled: true },
 
-  // 如果整个应用不需要 SSR，可以全局禁用
-  // ssr: false,
+  // 也可以在 app/app.vue 或具体页面中显式 import 此样式入口。
+  css: ['vue3-next-qrcode/style.css'],
 
-  // 或者针对特定页面禁用 SSR
-  routeRules: {
-    '/qrcode': { ssr: false },
-  },
-
-  // 构建配置
-  build: {
-    transpile: ['vue3-next-qrcode'],
-  },
-
-  // 包入口可以在 SSR 阶段安全导入，二维码渲染仍建议放在 <ClientOnly> 内。
+  // 无需关闭 SSR 或添加 transpile/alias；二维码组件放在 <ClientOnly> 内，
+  // 并提供 #fallback 作为服务端与 hydration 前的稳定占位。
 })

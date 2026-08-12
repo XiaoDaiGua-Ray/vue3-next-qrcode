@@ -49,28 +49,19 @@ export class AwesomeQR {
         })
       }
     })
-    if (!_options.components) {
-      _options.components = AwesomeQR.defaultComponentOptions
-    } else if (typeof _options.components === 'object') {
-      Object.keys(AwesomeQR.defaultComponentOptions).forEach((k) => {
-        if (!(k in _options.components)) {
-          Object.defineProperty(_options.components, k, {
-            value: AwesomeQR.defaultComponentOptions[k],
-            enumerable: true,
-            writable: true,
-          })
-        } else {
-          Object.defineProperty(_options.components, k, {
-            value: Object.assign(
-              Object.assign({}, AwesomeQR.defaultComponentOptions[k]),
-              _options.components[k],
-            ),
-            enumerable: true,
-            writable: true,
-          })
-        }
-      })
-    }
+    const componentOptions =
+      _options.components && typeof _options.components === 'object'
+        ? _options.components
+        : {}
+
+    _options.components = Object.fromEntries(
+      Object.entries(AwesomeQR.defaultComponentOptions).map(
+        ([key, defaultValue]) => [
+          key,
+          Object.assign({}, defaultValue, componentOptions[key]),
+        ],
+      ),
+    )
     if (_options.dotScale !== null && _options.dotScale !== undefined) {
       if (_options.dotScale <= 0 || _options.dotScale > 1) {
         throw new Error('dotScale should be in range (0, 1].')

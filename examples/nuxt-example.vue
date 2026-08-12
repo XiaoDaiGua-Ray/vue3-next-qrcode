@@ -1,5 +1,5 @@
 <!--
- * Nuxt 3 使用示例
+ * Nuxt 4 使用示例（保存为 app/pages/qrcode.vue）
  *
  * 安装：
  * npm install vue3-next-qrcode
@@ -9,7 +9,7 @@
 
 <template>
   <div class="nuxt-qrcode-example">
-    <h1>Vue3 Next QRCode - Nuxt 3 示例</h1>
+    <h1>Vue3 Next QRCode - Nuxt 4 示例</h1>
 
     <!-- 方法 1: 使用 ClientOnly 包裹普通组件 -->
     <section class="example-section">
@@ -27,6 +27,9 @@
       <h2>方法 2: 使用 QRCodeClient（推荐）</h2>
       <ClientOnly>
         <QRCodeClient :text="qrText" :size="200" colorLight="#f0f0f0" />
+        <template #fallback>
+          <div class="qrcode-fallback" aria-label="二维码加载中" />
+        </template>
       </ClientOnly>
     </section>
 
@@ -43,7 +46,10 @@
         <button @click="handleGenerate" :disabled="isLoading">
           {{ isLoading ? '生成中...' : '生成二维码' }}
         </button>
+        <button @click="cancel">取消</button>
+        <button @click="reset">重置</button>
       </div>
+      <p>状态：{{ status }}</p>
       <ClientOnly>
         <div v-if="qrcodeURL" class="qrcode-result">
           <img :src="qrcodeURL as string" alt="Generated QR Code" />
@@ -61,9 +67,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { Vue3NextQrcode, useQRCode } from 'vue3-next-qrcode'
+import { defineAsyncComponent, onMounted, ref } from 'vue'
+import {
+  QRCodeGenerationCancelledError,
+  Vue3NextQrcode,
+  useQRCode,
+} from 'vue3-next-qrcode'
 import { QRCodeClient } from 'vue3-next-qrcode/client'
+// 显式导入样式，避免 ClientOnly 默认插槽的 CSS 被服务端构建 tree-shake。
 import 'vue3-next-qrcode/style.css'
 
 // 动态导入组件（方法 4）
@@ -72,18 +83,23 @@ const LazyQRCode = defineAsyncComponent(() =>
 )
 
 const qrText = ref('https://github.com/XiaoDaiGua-Ray/vue3-next-qrcode')
-const customText = ref('Hello Nuxt 3!')
+const customText = ref('Hello Nuxt 4!')
 const mounted = ref(false)
 
 // 使用 useQRCode Hook
-const { qrcodeURL, isLoading, error, generate } = useQRCode()
+const { qrcodeURL, isLoading, status, error, generate, cancel, reset } =
+  useQRCode({ concurrency: 'latest' })
 
 const handleGenerate = async () => {
-  await generate({
-    text: customText.value,
-    size: 200,
-    margin: 20,
-  })
+  try {
+    await generate({
+      text: customText.value,
+      size: 200,
+      margin: 20,
+    })
+  } catch (cause) {
+    if (!(cause instanceof QRCodeGenerationCancelledError)) throw cause
+  }
 }
 
 onMounted(() => {
@@ -121,6 +137,13 @@ h1 {
   padding: 2rem;
   text-align: center;
   color: #999;
+}
+
+.qrcode-fallback {
+  width: 200px;
+  height: 200px;
+  border-radius: 8px;
+  background: #f2f4f7;
 }
 
 .controls {

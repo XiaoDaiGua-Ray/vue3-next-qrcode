@@ -136,4 +136,28 @@ describe('QRCode component', () => {
 
     expect(click).toHaveBeenCalledTimes(1)
   })
+
+  it('applies semantic CSS variables through defineProvider', () => {
+    mockedRenderQRCode.mockResolvedValue('data:image/png;base64,styled')
+    const wrapper = mount(QRCode, {
+      props: {
+        text: 'styled',
+        defineProvider: {
+          '--r-qrcode-background-color': '#101828',
+          '--r-qrcode-border-width': '2px',
+          '--r-qrcode-loading-spinner-color': '#7f56d9',
+          '--r-qrcode-error-gap': '12px',
+          '--r-qrcode-action-hover-color': '#f97066',
+        },
+      },
+    })
+
+    const style = wrapper.attributes('style')
+
+    expect(style).toContain('--r-qrcode-background-color: #101828')
+    expect(style).toContain('--r-qrcode-border-width: 2px')
+    expect(style).toContain('--r-qrcode-loading-spinner-color: #7f56d9')
+    expect(style).toContain('--r-qrcode-error-gap: 12px')
+    expect(style).toContain('--r-qrcode-action-hover-color: #f97066')
+  })
 })

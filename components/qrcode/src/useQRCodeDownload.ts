@@ -1,10 +1,12 @@
 import { computed, unref } from 'vue'
 import { downloadBase64File } from './utils'
 
-import type { ComputedRef, MaybeRef } from 'vue'
+import type { ComputedRef, Ref } from 'vue'
 import type { QRCodeRenderResponse } from './types'
 
-export type QRCodeDownloadSource = MaybeRef<QRCodeRenderResponse>
+export type CompatibleMaybeRef<T> = T | Ref<T>
+
+export type QRCodeDownloadSource = CompatibleMaybeRef<QRCodeRenderResponse>
 
 export type UseQRCodeDownloadReturn = {
   canDownload: ComputedRef<boolean>
