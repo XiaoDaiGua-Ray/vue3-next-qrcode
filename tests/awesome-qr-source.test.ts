@@ -35,11 +35,9 @@ describe('AwesomeQR source guards', () => {
     )
   })
 
-  it('guards expensive GIF inputs and preserves frame semantics', () => {
-    expect(awesomeQRSource).toContain('MAX_GIF_FRAMES')
-    expect(awesomeQRSource).toContain('MAX_GIF_TOTAL_PIXELS')
+  it('keeps frame delay and disposal integration in the render loop', () => {
     expect(awesomeQRSource).toContain('_normalizeGIFFrameDelay(frame.delay)')
-    expect(awesomeQRSource).toContain('previousFrame.disposalType === 2')
+    expect(awesomeQRSource).toContain('_restoreGIFBackground')
     expect(awesomeQRSource).toContain('previousFrame.disposalType === 3')
   })
 })

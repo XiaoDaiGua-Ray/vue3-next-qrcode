@@ -1,33 +1,55 @@
 import { Canvas, isCanvasElement } from './canvas.js'
 import { QRCodeModel, QRErrorCorrectLevel, QRUtil } from './qrcode'
+import { GIF_RESOURCE_LIMITS } from '../src/gifLimits'
 
 const defaultScale = 0.4
 const DEFAULT_GIF_FRAME_DELAY = 100
-const GIF_BACKGROUND_COLOR = '#ffffff'
-const MAX_GIF_FRAMES = 300
-const MAX_GIF_DIMENSION = 2048
-const MAX_GIF_TOTAL_PIXELS = 100 * 1024 * 1024
 
-async function loadImage(url) {
+function createAbortError(signal) {
+  if (signal?.reason instanceof Error) return signal.reason
+
+  return new DOMException('The operation was aborted', 'AbortError')
+}
+
+function throwIfAborted(signal) {
+  if (signal?.aborted) throw createAbortError(signal)
+}
+
+async function loadImage(url, signal) {
   if (!url) return undefined
+  throwIfAborted(signal)
 
   return new Promise((resolve, reject) => {
     const img = new Image()
+    const timeout = setTimeout(() => {
+      cleanup()
+      img.src = ''
+      reject(new Error('Image load timed out'))
+    }, GIF_RESOURCE_LIMITS.requestTimeoutMs)
 
     const cleanup = () => {
+      clearTimeout(timeout)
       img.onload = null
       img.onerror = null
+      signal?.removeEventListener('abort', handleAbort)
+    }
+    const handleAbort = () => {
+      cleanup()
+      img.src = ''
+      reject(createAbortError(signal))
     }
 
     img.onload = () => {
-      resolve(img)
       cleanup()
+      resolve(img)
     }
 
     img.onerror = () => {
-      reject(new Error('Image load error'))
       cleanup()
+      reject(new Error('Image load error'))
     }
+
+    signal?.addEventListener('abort', handleAbort, { once: true })
 
     if (url.startsWith('data:')) {
       img.src = url
@@ -38,8 +60,9 @@ async function loadImage(url) {
   })
 }
 export class AwesomeQR {
-  constructor(options) {
+  static _resolveOptions(options) {
     const _options = Object.assign({}, options)
+
     Object.keys(AwesomeQR.defaultOptions).forEach((k) => {
       if (!(k in _options)) {
         Object.defineProperty(_options, k, {
@@ -70,7 +93,16 @@ export class AwesomeQR {
       _options.components.timing.scale = _options.dotScale
       _options.components.alignment.scale = _options.dotScale
     }
+
+    return _options
+  }
+  constructor(options, signal) {
+    throwIfAborted(signal)
+
+    const _options = AwesomeQR._resolveOptions(options)
+
     this.options = _options
+    this.signal = signal
     this.canvas = new Canvas(_options.size, _options.size)
     this.canvasContext = this.canvas.getContext('2d')
     this.qrCode = new QRCodeModel(-1, this.options.correctLevel)
@@ -107,35 +139,103 @@ export class AwesomeQR {
 
     return { width, height }
   }
-  static _assertGIFFrames(parsedGIF, gifFrames) {
+  static _assertGIFBuffer(gifBuffer) {
+    const byteLength = Number(gifBuffer?.byteLength)
+
+    if (!Number.isFinite(byteLength) || byteLength <= 0) {
+      throw new Error('GIF background must contain binary data.')
+    }
+
+    if (byteLength > GIF_RESOURCE_LIMITS.maxBytes) {
+      throw new Error(
+        `GIF background encoded size ${byteLength} exceeds the maximum ${GIF_RESOURCE_LIMITS.maxBytes} bytes.`,
+      )
+    }
+  }
+  static _assertParsedGIF(parsedGIF) {
+    const parsedFrames = Array.isArray(parsedGIF?.frames)
+      ? parsedGIF.frames.filter((frame) => frame?.image?.descriptor)
+      : []
+
+    if (parsedFrames.length === 0) {
+      throw new Error('GIF background must contain at least one frame.')
+    }
+
+    if (parsedFrames.length > GIF_RESOURCE_LIMITS.maxFrames) {
+      throw new Error(
+        `GIF background frame count ${parsedFrames.length} exceeds the maximum ${GIF_RESOURCE_LIMITS.maxFrames}.`,
+      )
+    }
+
+    let width = Number(parsedGIF?.lsd?.width) || 0
+    let height = Number(parsedGIF?.lsd?.height) || 0
+    let totalPixels = 0
+
+    parsedFrames.forEach((frame, index) => {
+      const dims = frame.image.descriptor
+      const values = [dims.left, dims.top, dims.width, dims.height]
+
+      if (
+        !values.every(Number.isInteger) ||
+        dims.left < 0 ||
+        dims.top < 0 ||
+        dims.width <= 0 ||
+        dims.height <= 0
+      ) {
+        throw new Error(`GIF background frame ${index} has invalid dimensions.`)
+      }
+
+      width = Math.max(width, dims.left + dims.width)
+      height = Math.max(height, dims.top + dims.height)
+      totalPixels += dims.width * dims.height
+    })
+
+    if (!width || !height) {
+      throw new Error('GIF background has invalid dimensions.')
+    }
+
+    if (
+      width > GIF_RESOURCE_LIMITS.maxDimension ||
+      height > GIF_RESOURCE_LIMITS.maxDimension
+    ) {
+      throw new Error(
+        `GIF background dimensions ${width}x${height} exceed the maximum ${GIF_RESOURCE_LIMITS.maxDimension}x${GIF_RESOURCE_LIMITS.maxDimension}.`,
+      )
+    }
+
+    if (totalPixels > GIF_RESOURCE_LIMITS.maxTotalPixels) {
+      throw new Error(
+        `GIF background total frame pixels ${totalPixels} exceeds the maximum ${GIF_RESOURCE_LIMITS.maxTotalPixels}.`,
+      )
+    }
+
+    return { width, height, totalPixels, frameCount: parsedFrames.length }
+  }
+  static _assertGIFFrames(parsedGIF, gifFrames, parsedGIFSize) {
     if (!Array.isArray(gifFrames) || gifFrames.length === 0) {
       throw new Error('GIF background must contain at least one frame.')
     }
 
-    if (gifFrames.length > MAX_GIF_FRAMES) {
+    if (gifFrames.length > GIF_RESOURCE_LIMITS.maxFrames) {
       throw new Error(
-        `GIF background frame count ${gifFrames.length} exceeds the maximum ${MAX_GIF_FRAMES}.`,
+        `GIF background frame count ${gifFrames.length} exceeds the maximum ${GIF_RESOURCE_LIMITS.maxFrames}.`,
       )
     }
 
-    const gifSize = AwesomeQR._getGIFCanvasSize(parsedGIF, gifFrames)
+    const gifSize =
+      parsedGIFSize ?? AwesomeQR._getGIFCanvasSize(parsedGIF, gifFrames)
     const { width, height } = gifSize
 
     if (!width || !height) {
       throw new Error('GIF background has invalid dimensions.')
     }
 
-    if (width > MAX_GIF_DIMENSION || height > MAX_GIF_DIMENSION) {
+    if (
+      width > GIF_RESOURCE_LIMITS.maxDimension ||
+      height > GIF_RESOURCE_LIMITS.maxDimension
+    ) {
       throw new Error(
-        `GIF background dimensions ${width}x${height} exceed the maximum ${MAX_GIF_DIMENSION}x${MAX_GIF_DIMENSION}.`,
-      )
-    }
-
-    const totalPixels = width * height * gifFrames.length
-
-    if (totalPixels > MAX_GIF_TOTAL_PIXELS) {
-      throw new Error(
-        `GIF background total frame pixels ${totalPixels} exceed the maximum ${MAX_GIF_TOTAL_PIXELS}.`,
+        `GIF background dimensions ${width}x${height} exceed the maximum ${GIF_RESOURCE_LIMITS.maxDimension}x${GIF_RESOURCE_LIMITS.maxDimension}.`,
       )
     }
 
@@ -164,6 +264,41 @@ export class AwesomeQR {
     })
 
     return gifSize
+  }
+  static _decodeGIF(gifBuffer, gifModule) {
+    AwesomeQR._assertGIFBuffer(gifBuffer)
+
+    const parsedGIF = gifModule.parseGIF(gifBuffer)
+    const gifSize = AwesomeQR._assertParsedGIF(parsedGIF)
+    const gifFrames = gifModule.decompressFrames(parsedGIF, true)
+
+    AwesomeQR._assertGIFFrames(parsedGIF, gifFrames, gifSize)
+
+    return { parsedGIF, gifFrames, gifSize }
+  }
+  static _getGIFBackgroundColor(parsedGIF) {
+    const colorIndex = Number(parsedGIF?.lsd?.backgroundColorIndex)
+    const color = Number.isInteger(colorIndex)
+      ? parsedGIF?.gct?.[colorIndex]
+      : undefined
+    const channels = color ? Array.from(color).slice(0, 3) : []
+
+    if (
+      channels.length < 3 ||
+      !channels.every(Number.isFinite)
+    ) {
+      return null
+    }
+
+    return `rgb(${channels[0]},${channels[1]},${channels[2]})`
+  }
+  static _restoreGIFBackground(canvasContext, color, x, y, width, height) {
+    canvasContext.clearRect(x, y, width, height)
+
+    if (!color) return
+
+    canvasContext.fillStyle = color
+    canvasContext.fillRect(x, y, width, height)
   }
   static _normalizeGIFFrameDelay(delay) {
     const numericDelay = Number(delay)
@@ -326,6 +461,8 @@ export class AwesomeQR {
     canvasContext.fillStyle = oldFillStyle
   }
   async _draw() {
+    throwIfAborted(this.signal)
+
     var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u
     const nCount = this.qrCode?.moduleCount
     const rawSize = this.options.size
@@ -349,6 +486,7 @@ export class AwesomeQR {
     const backgroundCanvas = new Canvas(size, size)
     const backgroundCanvasContext = backgroundCanvas.getContext('2d')
     let parsedGIFBackground = null
+    let parsedGIFSize = null
     let gifFrames = []
     let GIFEncoder
     if (!!this.options.gifBackground) {
@@ -356,14 +494,19 @@ export class AwesomeQR {
         import('./gifuct-js/index.js'),
         import('./gif.js/GIFEncoder.js'),
       ])
-      const { decompressFrames, parseGIF } = gifModule
-
       GIFEncoder = encoderModule.default
 
-      const gif = parseGIF(this.options.gifBackground)
-      parsedGIFBackground = gif
-      gifFrames = decompressFrames(gif, true)
-      AwesomeQR._assertGIFFrames(parsedGIFBackground, gifFrames)
+      throwIfAborted(this.signal)
+
+      const decodedGIF = AwesomeQR._decodeGIF(
+        this.options.gifBackground,
+        gifModule,
+      )
+
+      parsedGIFBackground = decodedGIF.parsedGIF
+      parsedGIFSize = decodedGIF.gifSize
+      gifFrames = decodedGIF.gifFrames
+      throwIfAborted(this.signal)
 
       if (this.options.autoColor) {
         let r = 0,
@@ -389,7 +532,10 @@ export class AwesomeQR {
         }
       }
     } else if (!!this.options.backgroundImage) {
-      const backgroundImage = await loadImage(this.options.backgroundImage)
+      const backgroundImage = await loadImage(
+        this.options.backgroundImage,
+        this.signal,
+      )
       if (this.options.autoColor) {
         const avgRGB = AwesomeQR._getAverageRGB(backgroundImage)
         this.options.colorDark = `rgb(${avgRGB.r},${avgRGB.g},${avgRGB.b})`
@@ -697,7 +843,7 @@ export class AwesomeQR {
       mainCanvasContext.fillRect(-margin, -margin, margin, size)
     }
     if (!!this.options.logoImage) {
-      const logoImage = await loadImage(this.options.logoImage)
+      const logoImage = await loadImage(this.options.logoImage, this.signal)
       let logoScale = this.options.logoScale
       let logoMargin = this.options.logoMargin
       let logoCornerRadius = this.options.logoCornerRadius
@@ -752,7 +898,7 @@ export class AwesomeQR {
       mainCanvasContext.translate(margin, margin)
     }
     if (!!parsedGIFBackground) {
-      const gifSize = AwesomeQR._getGIFCanvasSize(parsedGIFBackground, gifFrames)
+      const gifSize = parsedGIFSize
       const gifOutput = new GIFEncoder(rawSize, rawSize)
 
       gifOutput.setRepeat(0)
@@ -770,9 +916,12 @@ export class AwesomeQR {
       let patchData
       let previousFrame
       let previousFrameRestoreData
+      const gifBackgroundColor =
+        AwesomeQR._getGIFBackgroundColor(parsedGIFBackground)
 
-      backgroundFrameCanvasContext.fillStyle = GIF_BACKGROUND_COLOR
-      backgroundFrameCanvasContext.fillRect(
+      AwesomeQR._restoreGIFBackground(
+        backgroundFrameCanvasContext,
+        gifBackgroundColor,
         0,
         0,
         backgroundFrameCanvas.width,
@@ -780,10 +929,13 @@ export class AwesomeQR {
       )
 
       for (const frame of gifFrames) {
+        throwIfAborted(this.signal)
+
         if (previousFrame) {
           if (previousFrame.disposalType === 2) {
-            backgroundFrameCanvasContext.fillStyle = GIF_BACKGROUND_COLOR
-            backgroundFrameCanvasContext.fillRect(
+            AwesomeQR._restoreGIFBackground(
+              backgroundFrameCanvasContext,
+              gifBackgroundColor,
               previousFrame.dims.left,
               previousFrame.dims.top,
               previousFrame.dims.width,

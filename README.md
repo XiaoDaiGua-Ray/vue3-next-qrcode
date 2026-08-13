@@ -76,14 +76,20 @@ createApp(App).use(Vue3NextQrcode).mount('#app')
 ### Custom Size And Colors
 
 ```vue
-<Vue3NextQrcode
-  text="Hello QR"
-  :size="240"
-  :margin="16"
-  colorDark="#111827"
-  colorLight="#ffffff"
-  :correctLevel="3"
-/>
+<script setup lang="ts">
+import { QRErrorCorrectLevel } from 'vue3-next-qrcode'
+</script>
+
+<template>
+  <Vue3NextQrcode
+    text="Hello QR"
+    :size="240"
+    :margin="16"
+    colorDark="#111827"
+    colorLight="#ffffff"
+    :correctLevel="QRErrorCorrectLevel.H"
+  />
+</template>
 ```
 
 ### Logo In The Center
@@ -296,7 +302,7 @@ import 'vue3-next-qrcode/lib/style.css'
 | `text`                   | `string`                            | required                      | Text encoded into the QR code.                                                                    |
 | `size`                   | `number`                            | `160`                         | QR code size in pixels.                                                                           |
 | `margin`                 | `number`                            | `12`                          | Quiet-zone margin around the QR body.                                                             |
-| `correctLevel`           | `0 \| 1 \| 2 \| 3`                  | `1`                           | Error correction level: L, M, Q, H.                                                               |
+| `correctLevel`           | `0 \| 1 \| 2 \| 3`                  | `1`                           | Error correction mapping: `L=1`, `M=0`, `Q=3`, `H=2`. Prefer `QRErrorCorrectLevel`.               |
 | `watchText`              | `boolean`                           | `true`                        | Re-render when `text` changes.                                                                    |
 | `status`                 | `'loading' \| 'error' \| 'success'` | `undefined`                   | Display loading or error UI instead of the normal QR image.                                       |
 | `colorDark`              | `string`                            | `'#000000'`                   | QR module color.                                                                                  |
@@ -310,7 +316,7 @@ import 'vue3-next-qrcode/lib/style.css'
 | `logoScale`              | `number`                            | `0.4`                         | Logo size ratio relative to QR size.                                                              |
 | `logoMargin`             | `number`                            | `6`                           | Logo margin in pixels.                                                                            |
 | `logoCornerRadius`       | `number`                            | `8`                           | Logo corner radius in pixels.                                                                     |
-| `dotScale`               | `number`                            | `1`                           | Dot size ratio in `(0, 1]`. Lower values reveal more background.                                  |
+| `dotScale`               | `number`                            | `undefined`                   | Optional global dot ratio in `(0, 1]`; when set, it overrides data/timing/alignment scales.       |
 | `whiteMargin`            | `boolean`                           | `true`                        | Use white quiet-zone margin instead of transparent margin.                                        |
 | `components`             | `ComponentOptions`                  | built-in defaults             | Fine-grained QR component styling.                                                                |
 | `maskPattern`            | `number`                            | `undefined`                   | Force a QR mask pattern from `0` to `7`. Usually leave unset.                                     |

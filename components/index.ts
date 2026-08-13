@@ -28,6 +28,7 @@ export type {
 }
 
 export { QRCode as Vue3NextQrcode, props as qrcodeProps }
+export { QRErrorCorrectLevel } from './qrcode/src/errorCorrection'
 export { useQRCode } from './qrcode/src/useQRCode'
 export { QRCodeGenerationCancelledError } from './qrcode/src/useQRCode'
 export type {

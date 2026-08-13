@@ -1,7 +1,7 @@
 {
   "name": "vue3-next-qrcode",
   "private": false,
-  "version": "4.1.0",
+  "version": "4.1.1",
   "type": "module",
   "packageManager": "pnpm@11.9.0",
   "license": "MIT",
@@ -20,9 +20,18 @@
       "import": "./es/client.mjs",
       "require": "./lib/client.cjs"
     },
-    "./style.css": "./es/style.css",
-    "./es/style.css": "./es/style.css",
-    "./lib/style.css": "./lib/style.css"
+    "./style.css": {
+      "types": "./es/style.d.ts",
+      "default": "./es/style.css"
+    },
+    "./es/style.css": {
+      "types": "./es/style.d.ts",
+      "default": "./es/style.css"
+    },
+    "./lib/style.css": {
+      "types": "./lib/style.d.ts",
+      "default": "./lib/style.css"
+    }
   },
   "files": [
     "lib",
@@ -44,7 +53,7 @@
   "scripts": {
     "dev": "vite --config vite.build.config.ts",
     "build": "pnpm run build:lib && pnpm run build:umd",
-    "build:lib": "vite build --config vite.build.config.ts",
+    "build:lib": "vite build --config vite.build.config.ts && node scripts/copy-style-types.mjs",
     "build:umd": "vite build --config vite.bundle.config.ts",
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit",

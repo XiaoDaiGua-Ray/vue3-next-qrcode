@@ -24,7 +24,6 @@ export default defineConfig({
     format: 'es',
   },
   build: {
-    minify: 'esbuild',
     rollupOptions: {
       external,
       output: [

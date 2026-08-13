@@ -273,10 +273,10 @@ declare const props: {
          * Ratio of the real size to the full size of the blocks.
          * This can be helpful when you want to make more parts of the background visible.
          *
-         * @default 1
+         * @default undefined
          */
         type: NumberConstructor;
-        default: number;
+        default: undefined;
         validator: (value: unknown) => boolean;
     };
     onSuccess: {

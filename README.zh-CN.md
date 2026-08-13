@@ -76,14 +76,20 @@ createApp(App).use(Vue3NextQrcode).mount('#app')
 ### 自定义大小和颜色
 
 ```vue
-<Vue3NextQrcode
-  text="Hello QR"
-  :size="240"
-  :margin="16"
-  colorDark="#111827"
-  colorLight="#ffffff"
-  :correctLevel="3"
-/>
+<script setup lang="ts">
+import { QRErrorCorrectLevel } from 'vue3-next-qrcode'
+</script>
+
+<template>
+  <Vue3NextQrcode
+    text="Hello QR"
+    :size="240"
+    :margin="16"
+    colorDark="#111827"
+    colorLight="#ffffff"
+    :correctLevel="QRErrorCorrectLevel.H"
+  />
+</template>
 ```
 
 ### 中间添加 Logo
@@ -293,7 +299,7 @@ import 'vue3-next-qrcode/lib/style.css'
 | `text`                   | `string`                            | 必填                          | 编码到二维码里的文本。                                                      |
 | `size`                   | `number`                            | `160`                         | 二维码尺寸，单位像素。                                                      |
 | `margin`                 | `number`                            | `12`                          | 二维码主体周围的安静区边距。                                                |
-| `correctLevel`           | `0 \| 1 \| 2 \| 3`                  | `1`                           | 纠错级别：L、M、Q、H。                                                      |
+| `correctLevel`           | `0 \| 1 \| 2 \| 3`                  | `1`                           | 纠错级别映射：`L=1`、`M=0`、`Q=3`、`H=2`，推荐使用 `QRErrorCorrectLevel`。  |
 | `watchText`              | `boolean`                           | `true`                        | `text` 变化时自动重新渲染。                                                 |
 | `status`                 | `'loading' \| 'error' \| 'success'` | `undefined`                   | 展示加载或错误状态。                                                        |
 | `colorDark`              | `string`                            | `'#000000'`                   | 二维码模块颜色。                                                            |
@@ -307,7 +313,7 @@ import 'vue3-next-qrcode/lib/style.css'
 | `logoScale`              | `number`                            | `0.4`                         | Logo 相对二维码尺寸的比例。                                                 |
 | `logoMargin`             | `number`                            | `6`                           | Logo 边距，单位像素。                                                       |
 | `logoCornerRadius`       | `number`                            | `8`                           | Logo 圆角，单位像素。                                                       |
-| `dotScale`               | `number`                            | `1`                           | 点阵缩放比例，范围 `(0, 1]`，数值越小露出的背景越多。                       |
+| `dotScale`               | `number`                            | `undefined`                   | 可选全局点阵比例 `(0, 1]`；显式设置时覆盖 data/timing/alignment 比例。      |
 | `whiteMargin`            | `boolean`                           | `true`                        | 使用白色安静区，而不是透明安静区。                                          |
 | `components`             | `ComponentOptions`                  | 内置默认值                    | 精细控制二维码局部样式。                                                    |
 | `maskPattern`            | `number`                            | `undefined`                   | 强制指定 `0` 到 `7` 的 QR mask pattern，一般无需设置。                      |

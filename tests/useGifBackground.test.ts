@@ -35,6 +35,9 @@ describe('useGifBackground', () => {
     const gif = useGifBackground()
 
     const firstLoad = gif.load('/first.gif')
+    const firstRejected = expect(firstLoad).rejects.toMatchObject({
+      name: 'AbortError',
+    })
     const secondLoad = gif.load('/second.gif')
     const secondBuffer = arrayBuffer(2)
     const firstBuffer = arrayBuffer(1)
@@ -42,13 +45,13 @@ describe('useGifBackground', () => {
     second.resolve(secondBuffer)
     await secondLoad
     first.resolve(firstBuffer)
-    await firstLoad
+    await firstRejected
 
     expect(gif.getBuffer('/second.gif')).toBe(secondBuffer)
     expect(gif.getBuffer('/first.gif')).toBeNull()
   })
 
-  it('does not store pending results after clear or dispose', async () => {
+  it('aborts and does not store pending results after clear or dispose', async () => {
     const first = deferred<ArrayBuffer>()
     const second = deferred<ArrayBuffer>()
     mockedReadGIF
@@ -57,15 +60,21 @@ describe('useGifBackground', () => {
     const gif = useGifBackground()
 
     const firstLoad = gif.load('/first.gif')
+    const firstRejected = expect(firstLoad).rejects.toMatchObject({
+      name: 'AbortError',
+    })
     gif.clear()
     first.resolve(arrayBuffer(1))
-    await firstLoad
+    await firstRejected
     expect(gif.gifBackground.value).toBeNull()
 
     const secondLoad = gif.load('/second.gif')
+    const secondRejected = expect(secondLoad).rejects.toMatchObject({
+      name: 'AbortError',
+    })
     gif.dispose()
     second.resolve(arrayBuffer(2))
-    await secondLoad
+    await secondRejected
 
     expect(gif.gifBackground.value).toBeNull()
   })

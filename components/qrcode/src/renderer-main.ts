@@ -4,6 +4,7 @@ import type { QRCodeBaseOptions, QRCodeRenderResponse } from './types'
 
 export async function renderQRCodeOnMainThread(
   options: QRCodeBaseOptions,
+  signal?: AbortSignal,
 ): Promise<QRCodeRenderResponse> {
-  return new AwesomeQR(options).draw()
+  return new AwesomeQR(options, signal).draw()
 }

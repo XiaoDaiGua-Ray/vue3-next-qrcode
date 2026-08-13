@@ -29,10 +29,13 @@ describe('renderer', () => {
       renderQRCode({ text: 'gif', gifBackground: arrayBuffer(1) }),
     ).resolves.toBe('main')
 
-    expect(mockedMain).toHaveBeenCalledWith({
-      text: 'gif',
-      gifBackground: expect.any(ArrayBuffer),
-    })
+    expect(mockedMain).toHaveBeenCalledWith(
+      {
+        text: 'gif',
+        gifBackground: expect.any(ArrayBuffer),
+      },
+      undefined,
+    )
     expect(mockedWorker).not.toHaveBeenCalled()
   })
 })

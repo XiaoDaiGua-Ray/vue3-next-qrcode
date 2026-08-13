@@ -38,6 +38,7 @@ describe('QRCode component', () => {
     expect(onSuccess).toHaveBeenCalledWith('data:image/png;base64,mounted')
     expect(mockedRenderQRCode).toHaveBeenCalledWith(
       expect.objectContaining({ text: 'hello' }),
+      expect.any(AbortSignal),
     )
   })
 
@@ -81,6 +82,7 @@ describe('QRCode component', () => {
 
     expect(mockedRenderQRCode).toHaveBeenLastCalledWith(
       expect.objectContaining({ text: 'second' }),
+      expect.any(AbortSignal),
     )
 
     second.resolve('data:image/png;base64,new')
@@ -159,5 +161,30 @@ describe('QRCode component', () => {
     expect(style).toContain('--r-qrcode-loading-spinner-color: #7f56d9')
     expect(style).toContain('--r-qrcode-error-gap: 12px')
     expect(style).toContain('--r-qrcode-action-hover-color: #f97066')
+  })
+
+  it('keeps status and error controls accessible outside an image role', async () => {
+    mockedRenderQRCode.mockResolvedValue('data:image/png;base64,error-state')
+    const onReload = vi.fn()
+    const wrapper = mount(QRCode, {
+      props: {
+        text: 'accessible',
+        status: 'error',
+        errorDescription: 'Unable to generate',
+        errorActionDescription: 'Retry',
+        onReload,
+      },
+    })
+
+    expect(wrapper.attributes('role')).toBeUndefined()
+    expect(wrapper.find('img').attributes('alt')).toBe('QR Code')
+    expect(wrapper.find('[role="alert"]').exists()).toBe(true)
+    expect(wrapper.find('button.r-qrcode__error-btn').attributes('type')).toBe(
+      'button',
+    )
+
+    await wrapper.find('button.r-qrcode__error-btn').trigger('click')
+
+    expect(onReload).toHaveBeenCalledTimes(1)
   })
 })

@@ -104,6 +104,11 @@
     }
 
     .r-qrcode__error-btn {
+      appearance: none;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      font: inherit;
       cursor: pointer;
       color: var(
         --r-qrcode-action-color,

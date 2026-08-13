@@ -60,7 +60,7 @@ const QRCode = defineComponent({
     // Methods
     const renderQRCode = async (): Promise<void> => {
       await renderQueue.runLatest(
-        async () => {
+        async (signal) => {
           const {
             gifBackgroundURL,
             gifBackground: gifBackgroundProp,
@@ -81,7 +81,7 @@ const QRCode = defineComponent({
           if (gifBackgroundURL) {
             gifBackgroundBuffer =
               gifBackground.getBuffer(gifBackgroundURL) ??
-              (await gifBackground.load(gifBackgroundURL))
+              (await gifBackground.load(gifBackgroundURL, signal))
           } else {
             gifBackgroundBuffer = gifBackgroundProp || undefined
           }
@@ -92,7 +92,7 @@ const QRCode = defineComponent({
             gifBackground: gifBackgroundBuffer,
           }
 
-          return renderQRCodeImage(renderOptions)
+          return renderQRCodeImage(renderOptions, signal)
         },
         {
           onSuccess(result) {
@@ -198,12 +198,7 @@ const QRCode = defineComponent({
     const { status, errorDescription, errorActionDescription } = this
 
     return (
-      <div
-        class="r-qrcode"
-        style={this.cssVars}
-        role="img"
-        aria-label="QR Code"
-      >
+      <div class="r-qrcode" style={this.cssVars}>
         <div class={this.loadingClass}>
           {status === 'loading' &&
             (this.$slots.loading ? (
@@ -225,18 +220,10 @@ const QRCode = defineComponent({
                 ? errorDescription
                 : errorDescription}
             </div>
-            <div
+            <button
+              type="button"
               class="r-qrcode__error-btn"
               onClick={this.errorActionClick}
-              role="button"
-              tabindex={0}
-              onKeydown={(e: KeyboardEvent) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-
-                  this.errorActionClick()
-                }
-              }}
             >
               {this.$slots.errorAction ? (
                 this.$slots.errorAction()
@@ -249,7 +236,7 @@ const QRCode = defineComponent({
                   {errorActionDescription}
                 </span>
               )}
-            </div>
+            </button>
           </div>
         )}
       </div>

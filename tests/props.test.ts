@@ -12,6 +12,10 @@ const validator = (prop: keyof typeof props) => {
 }
 
 describe('qrcode props validators', () => {
+  it('does not apply dotScale unless the user supplies it', () => {
+    expect(props.dotScale.default).toBeUndefined()
+  })
+
   it('validates maskPattern as integer 0..7', () => {
     const validate = validator('maskPattern')
 

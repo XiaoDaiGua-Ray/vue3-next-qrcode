@@ -221,7 +221,7 @@ export declare class AwesomeQR {
     };
     private static defaultComponentOptions;
     static defaultOptions: Options;
-    constructor(options: Partial<Options>);
+    constructor(options: Partial<Options>, signal?: AbortSignal);
     draw(): Promise<Uint8Array | ArrayBuffer | string | undefined>;
     private _clear;
     private static _prepareRoundedCornerClip;

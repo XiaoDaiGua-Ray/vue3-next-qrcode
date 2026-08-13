@@ -14,6 +14,8 @@
 //   http://www.denso-wave.com/qrcode/faqpatent-e.html
 //
 //---------------------------------------------------------------------
+import { QRErrorCorrectLevel } from '../src/errorCorrection'
+
 function _getTypeNumber(sText, nCorrectLevel) {
   var nType = 1
   var length = _getUTF8Length(sText)
@@ -401,7 +403,7 @@ export class QRCodeModel {
 }
 QRCodeModel.PAD0 = 0xec
 QRCodeModel.PAD1 = 0x11
-export const QRErrorCorrectLevel = { L: 1, M: 0, Q: 3, H: 2 }
+export { QRErrorCorrectLevel }
 const QRMode = {
   MODE_NUMBER: 1 << 0,
   MODE_ALPHA_NUM: 1 << 1,

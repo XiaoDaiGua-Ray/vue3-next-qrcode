@@ -2,6 +2,7 @@ import * as Vue from 'vue'
 import { renderQRCode } from './renderer'
 import { useGifBackground } from './useGifBackground'
 import { useQRCodeDownload } from './useQRCodeDownload'
+import { assertQRCodeOptions } from './validation'
 
 import type { ComputedRef, Ref } from 'vue'
 import type { QRCodeRenderResponse, QRCodeBaseOptions } from './types'
@@ -71,6 +72,7 @@ export interface UseQRCodeReturnWithDefaults extends UseQRCodeReturnBase {
 type GenerationJob = {
   id: number
   options: UseQRCodeOptions
+  controller: AbortController
   cancelled: boolean
   settled: boolean
   resolve: (result: QRCodeRenderResponse) => void
@@ -114,6 +116,7 @@ export function useQRCode(
   const cancelJob = (job: GenerationJob | null, message?: string): void => {
     if (!job || job.settled) return
 
+    job.controller.abort()
     job.cancelled = true
     job.settled = true
     job.reject(new QRCodeGenerationCancelledError(message))
@@ -131,11 +134,14 @@ export function useQRCode(
       throw new Error('Text is required for QR code generation')
     }
 
+    assertQRCodeOptions(merged)
+
     return merged
   }
 
   const performGeneration = async (
     options: UseQRCodeOptions,
+    signal: AbortSignal,
   ): Promise<QRCodeRenderResponse> => {
     const {
       gifBackgroundURL,
@@ -148,7 +154,7 @@ export function useQRCode(
     if (gifBackgroundURL) {
       gifBackgroundBuffer =
         gifBackground.getBuffer(gifBackgroundURL) ??
-        (await gifBackground.load(gifBackgroundURL))
+        (await gifBackground.load(gifBackgroundURL, signal))
     }
 
     const cleanOptions: Partial<QRCodeBaseOptions> = Object.fromEntries(
@@ -159,7 +165,7 @@ export function useQRCode(
       cleanOptions.gifBackground = gifBackgroundBuffer
     }
 
-    return renderQRCode(cleanOptions as QRCodeBaseOptions)
+    return renderQRCode(cleanOptions as QRCodeBaseOptions, signal)
   }
 
   const refreshLoading = (): void => {
@@ -172,7 +178,7 @@ export function useQRCode(
     executing = true
     activeJob = job
 
-    void performGeneration(job.options)
+    void performGeneration(job.options, job.controller.signal)
       .then((result) => {
         if (disposed || job.cancelled || job.settled || job.id !== sequence) {
           cancelJob(job)
@@ -268,6 +274,7 @@ export function useQRCode(
       const job: GenerationJob = {
         id,
         options: resolvedOptions,
+        controller: new AbortController(),
         cancelled: false,
         settled: false,
         resolve,
@@ -296,6 +303,8 @@ export function useQRCode(
   }
 
   const reset = (): void => {
+    if (disposed) return
+
     cancel()
     qrcodeURL.value = void 0
     error.value = null

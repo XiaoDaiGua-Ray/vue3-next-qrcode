@@ -4,6 +4,7 @@ import { QRCodeProps } from './qrcode/src/QRCode';
 import { QRCodeInst, QRCodeLevel, QRCodeStatus, QRCodeComponentProps, QRCodeBaseOptions, QRCodeOptions, ComponentOptions, DefineProvider, QRCodeRenderResponse } from './qrcode/src/types';
 export type { QRCodeInst, QRCodeLevel, QRCodeStatus, QRCodeComponentProps, QRCodeBaseOptions, QRCodeOptions, ComponentOptions, DefineProvider, QRCodeRenderResponse, QRCodeProps, };
 export { QRCode as Vue3NextQrcode, props as qrcodeProps };
+export { QRErrorCorrectLevel } from './qrcode/src/errorCorrection';
 export { useQRCode } from './qrcode/src/useQRCode';
 export { QRCodeGenerationCancelledError } from './qrcode/src/useQRCode';
 export type { QRCodeGenerationConcurrency, QRCodeGenerationStatus, UseQRCodeConfig, UseQRCodeConfigWithDefaults, UseQRCodeOptions, UseQRCodeReturn, UseQRCodeReturnWithDefaults, UseQRCodeReturnType, } from './qrcode/src/useQRCode';

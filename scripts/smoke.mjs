@@ -46,6 +46,8 @@ const requiredPackageFiles = [
   'lib/client.cjs',
   'es/style.css',
   'lib/style.css',
+  'es/style.d.ts',
+  'lib/style.d.ts',
   'es/index.d.ts',
   'lib/index.d.ts',
 ]
@@ -70,6 +72,22 @@ await assertImport('cjs client require is ssr-safe', () =>
   Promise.resolve(require('vue3-next-qrcode/client')),
 )
 
+const esmRoot = await import('vue3-next-qrcode')
+const cjsRoot = require('vue3-next-qrcode')
+const expectedCorrectionLevels = { L: 1, M: 0, Q: 3, H: 2 }
+
+assert(
+  JSON.stringify(esmRoot.QRErrorCorrectLevel) ===
+    JSON.stringify(expectedCorrectionLevels),
+  'ESM root should export the documented correction-level mapping',
+)
+assert(
+  JSON.stringify(cjsRoot.QRErrorCorrectLevel) ===
+    JSON.stringify(expectedCorrectionLevels),
+  'CJS root should export the documented correction-level mapping',
+)
+console.log('ok correction-level mapping exports')
+
 for (const subpath of [
   'vue3-next-qrcode/style.css',
   'vue3-next-qrcode/es/style.css',
@@ -78,6 +96,19 @@ for (const subpath of [
   assert(require.resolve(subpath), `${subpath} should resolve`)
 }
 console.log('ok style exports resolve')
+
+const packageManifest = JSON.parse(readProjectFile('package.json'))
+
+for (const subpath of ['./style.css', './es/style.css', './lib/style.css']) {
+  const styleExport = packageManifest.exports[subpath]
+
+  assert(
+    typeof styleExport?.types === 'string' &&
+      fs.existsSync(path.join(rootDir, styleExport.types)),
+    `${subpath} should publish a declaration entry`,
+  )
+}
+console.log('ok style exports publish declaration entries')
 
 const builtFiles = walk(path.join(rootDir, 'es')).concat(
   walk(path.join(rootDir, 'lib')),
@@ -200,24 +231,25 @@ assert(
   'GIF output should handle disposal types 2 and 3',
 )
 assert(
-  awesomeQRSource.includes('MAX_GIF_FRAMES') &&
-    awesomeQRSource.includes('MAX_GIF_TOTAL_PIXELS'),
-  'GIF output should guard resource usage',
+  awesomeQRSource.includes('_assertParsedGIF') &&
+    awesomeQRSource.includes('_decodeGIF') &&
+    awesomeQRSource.includes('GIF_RESOURCE_LIMITS'),
+  'GIF output should preflight resource usage before decompression',
 )
 console.log('ok core render guards are present')
 
 const propsSource = readProjectFile('components/qrcode/src/props.ts')
 
 assert(
-  propsSource.includes('isIntegerInRange(value, 0, 7)'),
+  propsSource.includes('validator: isQRCodeMaskPattern'),
   'maskPattern prop should validate 0..7',
 )
 assert(
-  propsSource.includes('isIntegerInRange(value, 1, 40)'),
+  propsSource.includes('validator: isQRCodeVersion'),
   'version prop should validate 1..40',
 )
 assert(
-  propsSource.includes('value > 0 && value <= 1'),
+  propsSource.includes('validator: isQRCodeDotScale'),
   'dotScale prop should validate (0, 1]',
 )
 console.log('ok prop validators are present')
@@ -301,9 +333,8 @@ assert(
 )
 console.log('ok declaration consumer smoke')
 
-const { QRCodeModel, QRErrorCorrectLevel } =
-  await import('../es/qrcode/core/qrcode.mjs')
-const qr = new QRCodeModel(-1, QRErrorCorrectLevel.M)
+const { QRCodeModel } = await import('../es/qrcode/core/qrcode.mjs')
+const qr = new QRCodeModel(-1, esmRoot.QRErrorCorrectLevel.M)
 
 qr.addData('hello 👋 二维码')
 qr.make()

@@ -35,10 +35,13 @@ describe('useQRCode', () => {
       'data:image/png;base64,ok',
     )
 
-    expect(mockedRenderQRCode).toHaveBeenCalledWith({
-      text: 'hello',
-      size: 200,
-    })
+    expect(mockedRenderQRCode).toHaveBeenCalledWith(
+      {
+        text: 'hello',
+        size: 200,
+      },
+      expect.any(AbortSignal),
+    )
     expect(qrcode.qrcodeURL.value).toBe('data:image/png;base64,ok')
     expect(qrcode.canDownload.value).toBe(true)
     expect(qrcode.status.value).toBe('success')
@@ -63,11 +66,14 @@ describe('useQRCode', () => {
       margin: 12,
     })
 
-    expect(mockedRenderQRCode).toHaveBeenCalledWith({
-      text: 'gif',
-      margin: 12,
-      gifBackground: gif,
-    })
+    expect(mockedRenderQRCode).toHaveBeenCalledWith(
+      {
+        text: 'gif',
+        margin: 12,
+        gifBackground: gif,
+      },
+      expect.any(AbortSignal),
+    )
   })
 
   it('sets error and rethrows render failures', async () => {
@@ -111,16 +117,24 @@ describe('useQRCode', () => {
     await qrcode.generate({ size: 240 })
     await qrcode.generate()
 
-    expect(mockedRenderQRCode).toHaveBeenNthCalledWith(1, {
-      text: 'default text',
-      size: 240,
-      colorDark: '#111111',
-    })
-    expect(mockedRenderQRCode).toHaveBeenNthCalledWith(2, {
-      text: 'default text',
-      size: 180,
-      colorDark: '#111111',
-    })
+    expect(mockedRenderQRCode).toHaveBeenNthCalledWith(
+      1,
+      {
+        text: 'default text',
+        size: 240,
+        colorDark: '#111111',
+      },
+      expect.any(AbortSignal),
+    )
+    expect(mockedRenderQRCode).toHaveBeenNthCalledWith(
+      2,
+      {
+        text: 'default text',
+        size: 180,
+        colorDark: '#111111',
+      },
+      expect.any(AbortSignal),
+    )
   })
 
   it('keeps only the latest generation owner and rejects replaced promises', async () => {
@@ -144,6 +158,55 @@ describe('useQRCode', () => {
     await expect(latest).resolves.toBe('data:image/png;base64,latest')
     expect(qrcode.qrcodeURL.value).toBe('data:image/png;base64,latest')
     expect(qrcode.status.value).toBe('success')
+  })
+
+  it('aborts a stale GIF fetch so the latest generation can start', async () => {
+    const signals: AbortSignal[] = []
+    const latestGIF = arrayBuffer(4, 1, 1)
+    const fetch = vi.fn((_url: string, init?: RequestInit) => {
+      const signal = init?.signal as AbortSignal
+
+      signals.push(signal)
+
+      if (signals.length === 1) {
+        return new Promise<Response>((_resolve, reject) => {
+          signal.addEventListener(
+            'abort',
+            () => reject(new DOMException('aborted', 'AbortError')),
+            { once: true },
+          )
+        })
+      }
+
+      return Promise.resolve(response(latestGIF))
+    })
+
+    vi.stubGlobal('fetch', fetch)
+    mockedRenderQRCode.mockResolvedValue('data:image/gif;base64,latest')
+    const qrcode = useQRCode({ concurrency: 'latest' })
+    const first = qrcode.generate({
+      text: 'first',
+      gifBackgroundURL: '/first.gif',
+    })
+
+    await vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(1))
+
+    const latest = qrcode.generate({
+      text: 'latest',
+      gifBackgroundURL: '/latest.gif',
+    })
+
+    await expect(first).rejects.toBeInstanceOf(QRCodeGenerationCancelledError)
+    await expect(latest).resolves.toBe('data:image/gif;base64,latest')
+    expect(fetch).toHaveBeenCalledTimes(2)
+    expect(signals[0].aborted).toBe(true)
+    expect(mockedRenderQRCode).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'latest',
+        gifBackground: latestGIF,
+      }),
+      expect.any(AbortSignal),
+    )
   })
 
   it('cancels logical ownership without clearing the last successful result', async () => {
@@ -209,6 +272,31 @@ describe('useQRCode', () => {
 
     expect(qrcode.status.value).toBe('error')
     expect(qrcode.error.value?.message).toContain('Text is required')
+  })
+
+  it('rejects invalid encoding options before rendering', async () => {
+    const qrcode = useQRCode()
+
+    await expect(
+      qrcode.generate({ text: 'invalid', version: 41 }),
+    ).rejects.toThrow('version should be an integer in range [1, 40]')
+    await expect(
+      qrcode.generate({ text: 'invalid', maskPattern: 8 }),
+    ).rejects.toThrow('maskPattern should be an integer in range [0, 7]')
+    await expect(
+      qrcode.generate({ text: 'invalid', correctLevel: 4 }),
+    ).rejects.toThrow('correctLevel should be one of')
+    expect(mockedRenderQRCode).not.toHaveBeenCalled()
+  })
+
+  it('keeps the disposed lifecycle state when reset is called later', () => {
+    const qrcode = useQRCode()
+
+    qrcode.dispose()
+    qrcode.reset()
+
+    expect(qrcode.status.value).toBe('cancelled')
+    expect(qrcode.isLoading.value).toBe(false)
   })
 
   it('clears generated value, error, and download state', async () => {

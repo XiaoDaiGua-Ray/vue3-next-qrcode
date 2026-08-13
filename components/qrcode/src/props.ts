@@ -5,12 +5,13 @@ import type {
   DefineProvider,
   ComponentOptions,
 } from './types'
+import {
+  isQRCodeCorrectLevel,
+  isQRCodeDotScale,
+  isQRCodeMaskPattern,
+  isQRCodeVersion,
+} from './validation'
 import type { PropType, VNode } from 'vue'
-
-const isIntegerInRange = (value: unknown, min: number, max: number): boolean =>
-  Number.isInteger(value) &&
-  (value as number) >= min &&
-  (value as number) <= max
 
 const props = {
   defineProvider: {
@@ -112,8 +113,7 @@ const props = {
      */
     type: Number as PropType<QRCodeLevel>,
     default: 1,
-    validator: (value: unknown): boolean =>
-      [0, 1, 2, 3].includes(value as number),
+    validator: isQRCodeCorrectLevel,
   },
   maskPattern: {
     /**
@@ -122,7 +122,7 @@ const props = {
      * Accepts a value provided by _QRMaskPattern_
      */
     type: Number,
-    validator: (value: unknown): boolean => isIntegerInRange(value, 0, 7),
+    validator: isQRCodeMaskPattern,
   },
   version: {
     /**
@@ -131,7 +131,7 @@ const props = {
      * Accepts an integer in range [1, 40]
      */
     type: Number,
-    validator: (value: unknown): boolean => isIntegerInRange(value, 1, 40),
+    validator: isQRCodeVersion,
   },
   components: {
     /**
@@ -286,12 +286,11 @@ const props = {
      * Ratio of the real size to the full size of the blocks.
      * This can be helpful when you want to make more parts of the background visible.
      *
-     * @default 1
+     * @default undefined
      */
     type: Number,
-    default: 1,
-    validator: (value: unknown): boolean =>
-      typeof value === 'number' && value > 0 && value <= 1,
+    default: undefined,
+    validator: isQRCodeDotScale,
   },
   onSuccess: {
     /**

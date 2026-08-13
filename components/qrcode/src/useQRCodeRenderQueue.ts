@@ -10,23 +10,28 @@ export function useQRCodeRenderQueue<T>() {
   const needsRerender = ref(false)
   let requestId = 0
   let disposed = false
+  let activeController: AbortController | null = null
 
   const runLatest = async (
-    task: () => Promise<T>,
+    task: (signal: AbortSignal) => Promise<T>,
     handlers: LatestRenderHandlers<T> = {},
   ): Promise<T | undefined> => {
     const currentRequestId = ++requestId
 
     if (isRendering.value) {
       needsRerender.value = true
+      activeController?.abort()
       return undefined
     }
 
+    const controller = new AbortController()
+
+    activeController = controller
     isRendering.value = true
     needsRerender.value = false
 
     try {
-      const result = await task()
+      const result = await task(controller.signal)
 
       if (!disposed && currentRequestId === requestId) {
         handlers.onSuccess?.(result)
@@ -42,6 +47,8 @@ export function useQRCodeRenderQueue<T>() {
 
       return undefined
     } finally {
+      if (activeController === controller) activeController = null
+
       isRendering.value = false
 
       if (!disposed && needsRerender.value) {
@@ -50,18 +57,22 @@ export function useQRCodeRenderQueue<T>() {
     }
   }
 
-  const runExclusive = async (task: () => Promise<T>): Promise<T> => {
+  const runExclusive = async (
+    task: (signal: AbortSignal) => Promise<T>,
+  ): Promise<T> => {
     if (isRendering.value) {
       throw new Error('QR code generation is already in progress')
     }
 
     const currentRequestId = ++requestId
+    const controller = new AbortController()
 
+    activeController = controller
     isRendering.value = true
     needsRerender.value = false
 
     try {
-      const result = await task()
+      const result = await task(controller.signal)
 
       if (disposed || currentRequestId !== requestId) {
         throw new Error('QR code generation was cancelled')
@@ -69,6 +80,8 @@ export function useQRCodeRenderQueue<T>() {
 
       return result
     } finally {
+      if (activeController === controller) activeController = null
+
       isRendering.value = false
     }
   }
@@ -76,6 +89,8 @@ export function useQRCodeRenderQueue<T>() {
   const dispose = (): void => {
     disposed = true
     requestId++
+    activeController?.abort()
+    activeController = null
     needsRerender.value = false
     isRendering.value = false
   }

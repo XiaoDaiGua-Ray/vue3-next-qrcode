@@ -7,9 +7,12 @@ const rootDir = path.resolve(fileURLToPath(import.meta.url), '../..')
 const mode = process.argv[2]
 const tarball = path.resolve(process.argv[3] ?? '')
 
-if (!['vue-3.0.1', 'nuxt-4.5.2'].includes(mode) || !fs.existsSync(tarball)) {
+if (
+  !['vue-3.0.1', 'vue-3.5.41', 'nuxt-4.5.2'].includes(mode) ||
+  !fs.existsSync(tarball)
+) {
   throw new Error(
-    'Usage: node scripts/release-compat.mjs <vue-3.0.1|nuxt-4.5.2> <tarball>',
+    'Usage: node scripts/release-compat.mjs <vue-3.0.1|vue-3.5.41|nuxt-4.5.2> <tarball>',
   )
 }
 
@@ -104,8 +107,17 @@ write(
   `${JSON.stringify({ private: true, type: 'module' }, null, 2)}\n`,
 )
 
-if (mode === 'vue-3.0.1') {
-  install(tarball, 'vue@3.0.1', 'vite@8.0.14', 'typescript@4.1.6')
+if (mode === 'vue-3.0.1' || mode === 'vue-3.5.41') {
+  const vueVersion = mode === 'vue-3.0.1' ? '3.0.1' : '3.5.41'
+  const typescriptVersion = mode === 'vue-3.0.1' ? '4.1.6' : '6.0.3'
+  const modernTypeScript = mode === 'vue-3.5.41'
+
+  install(
+    tarball,
+    `vue@${vueVersion}`,
+    'vite@8.0.14',
+    `typescript@${typescriptVersion}`,
+  )
   write(
     'tsconfig.json',
     `${JSON.stringify(
@@ -115,9 +127,12 @@ if (mode === 'vue-3.0.1') {
           skipLibCheck: false,
           target: 'ES2020',
           module: 'ESNext',
-          moduleResolution: 'Node',
+          moduleResolution: modernTypeScript ? 'Bundler' : 'Node',
           lib: ['ES2020', 'DOM'],
           noEmit: true,
+          ...(modernTypeScript
+            ? { noUncheckedSideEffectImports: true }
+            : undefined),
         },
         include: ['src/**/*.ts'],
       },
@@ -133,6 +148,7 @@ if (mode === 'vue-3.0.1') {
     'src/main.ts',
     `import { createApp, h } from 'vue'
 import {
+  QRErrorCorrectLevel,
   QRCodeGenerationCancelledError,
   Vue3NextQrcode,
   useQRCode,
@@ -140,7 +156,8 @@ import {
 import type { DefineProvider, QRCodeProps } from 'vue3-next-qrcode'
 import 'vue3-next-qrcode/style.css'
 
-const props: QRCodeProps = { text: 'Vue 3.0.1 component' }
+const props: QRCodeProps = { text: 'Vue ${vueVersion} component' }
+const highCorrectionLevel = QRErrorCorrectLevel.H
 const theme: DefineProvider = {
   '--r-qrcode-background-color': '#101828',
   '--r-qrcode-border-color': '#7f56d9',
@@ -153,7 +170,11 @@ createApp({
   setup() {
     const hook = useQRCode({
       concurrency: 'latest',
-      defaultOptions: { text: 'Vue 3.0.1 hook', size: 180 },
+      defaultOptions: {
+        text: 'Vue ${vueVersion} hook',
+        size: 180,
+        correctLevel: highCorrectionLevel,
+      },
     })
 
     void hook.generate().catch((error: unknown) => {
@@ -164,7 +185,7 @@ createApp({
       h('main', [
         h('section', { id: 'default-theme' }, [h(Vue3NextQrcode, props)]),
         h('section', { id: 'custom-theme' }, [
-          h(Vue3NextQrcode, { text: 'Vue 3.0.1 themed', defineProvider: theme }),
+          h(Vue3NextQrcode, { text: 'Vue ${vueVersion} themed', defineProvider: theme }),
         ]),
         h('section', { id: 'hook-result' }, [
           h('output', { id: 'hook-status' }, hook.status.value),
@@ -180,7 +201,9 @@ createApp({
 
   run('npx', ['--no-install', 'tsc', '--project', 'tsconfig.json'])
   run('npx', ['--no-install', 'vite', 'build'])
-  console.log('ok Vue 3.0.1 strict declarations and Vite build')
+  console.log(
+    `ok Vue ${vueVersion} strict declarations, CSS import, and Vite build`,
+  )
 } else {
   install(tarball, 'nuxt@4.5.2')
   write(

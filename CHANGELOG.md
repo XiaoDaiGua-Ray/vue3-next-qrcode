@@ -1,3 +1,20 @@
+## v4.1.1
+
+### Fix
+
+- 修复 Vite 8 干净环境因未声明 `esbuild` 而构建失败，恢复默认 Oxc 压缩链。
+- GIF 在解压前执行编码体积、帧数、尺寸和解码像素限制，并为请求、缓存及图片加载增加字节预算、超时和真实取消。
+- GIF disposal type 2 使用逻辑屏幕背景色，无有效背景色时恢复透明。
+- `dotScale` 仅在显式传入时覆盖 `components` 的细粒度比例。
+- CSS 三个公开入口均发布 TypeScript 声明，兼容 `noUncheckedSideEffectImports`。
+- 组件与 `useQRCode()` 共享非法编码参数校验，并公开 `QRErrorCorrectLevel` 的准确映射。
+- 修复错误状态的无障碍语义、GIF 默认下载扩展名和 dispose 后 reset 状态不一致。
+
+### Release Integrity
+
+- npm `4.0.0` 的真实源码 `gitHead` 是 `2b61a170796b99e0468820b9a7a689fc889ff899`；历史 `v4.0.0` 标签保持不移动，并记录该差异供比较和回滚使用。
+- `4.1.0` 曾包含公开兼容性变化却使用次版本号；`4.1.1` 只包含向后兼容修复，后续破坏性变更必须进入主版本。
+
 ## v4.1.0
 
 ### Feat

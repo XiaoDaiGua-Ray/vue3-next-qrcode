@@ -1,10 +1,21 @@
 import type { QRCodeBaseOptions, QRCodeRenderResponse } from './types'
+import { assertQRCodeOptions } from './validation'
 
 declare const __VUE3_NEXT_QRCODE_ENABLE_WORKER__: boolean
 
 export async function renderQRCode(
   options: QRCodeBaseOptions,
+  signal?: AbortSignal,
 ): Promise<QRCodeRenderResponse> {
+  assertQRCodeOptions(options)
+
+  if (signal?.aborted) {
+    throw (
+      signal.reason ??
+      new DOMException('The operation was aborted', 'AbortError')
+    )
+  }
+
   if (__VUE3_NEXT_QRCODE_ENABLE_WORKER__ && options.gifBackground) {
     try {
       const { renderQRCodeInWorker } = await import('./renderer-worker')
@@ -18,5 +29,5 @@ export async function renderQRCode(
 
   const { renderQRCodeOnMainThread } = await import('./renderer-main')
 
-  return renderQRCodeOnMainThread(options)
+  return renderQRCodeOnMainThread(options, signal)
 }

@@ -6,7 +6,7 @@ export type QRCodeInst = {
      *
      * @param fileName file name
      *
-     * 如果未设置名称，则默认以 时间戳.png 命名
+     * If omitted, the timestamped file extension follows the generated MIME type.
      */
     downloadQRCode: (fileName?: string) => Promise<void>;
 };
